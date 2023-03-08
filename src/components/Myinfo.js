@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Header from "./header/Header";
 import axios from "axios";
-import "bootstrap/dist/css/bootstrap.css";
 
 const MyInfo = () => {
   const [loading, setLoading] = useState(false);
@@ -45,6 +44,9 @@ const MyInfo = () => {
           </p>
           <p>
             <strong>Email:</strong> {user.email}
+          </p>
+          <p>
+            <strong>Point:</strong> {user.points}
           </p>
           <button
             className="btn btn-primary"

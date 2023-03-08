@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Header from "./header/Header";
-import "bootstrap/dist/css/bootstrap.css";
 
 const Main = () => {
   const [loading, setLoading] = useState(false);

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Header from "./header/Header";
 import axios from "axios";
-import "bootstrap/dist/css/bootstrap.css";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -12,17 +12,16 @@ const Login = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const { email, password } = formData;
-
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prevState) => ({ ...prevState, [name]: value }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post("/api/auth/login", { email, password });
+      const res = await axios.post("/api/auth/login", formData);
       localStorage.setItem("token", res.data.token);
       setLoading(false);
       navigate("/main");
@@ -39,6 +38,7 @@ const Login = () => {
   return (
     <div className="container">
       <h1>Login</h1>
+      <Header />
       {error && <div className="alert alert-danger">{error}</div>}
       <form onSubmit={handleSubmit}>
         <div className="form-group">
@@ -48,7 +48,7 @@ const Login = () => {
             className="form-control"
             id="email"
             name="email"
-            value={email}
+            value={formData.email}
             onChange={handleChange}
             required
           />
@@ -60,7 +60,7 @@ const Login = () => {
             className="form-control"
             id="password"
             name="password"
-            value={password}
+            value={formData.password}
             onChange={handleChange}
             required
           />

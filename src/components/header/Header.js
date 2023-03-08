@@ -2,81 +2,79 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.css";
 
-const headerStyle = {
-  marginBottom: "20px",
-};
-
 const Header = () => {
   const navigate = useNavigate();
+  const isLoggedIn = Boolean(localStorage.getItem("token"));
 
-  const handleHomeClick = () => {
-    navigate("/main");
+  const handleNavigation = (path) => {
+    navigate(path);
   };
 
-  const handleAssignmentRegistrationClick = () => {
-    navigate("/assignment-registration");
-  };
-
-  const handleAssignmentAnswerClick = () => {
-    navigate("/assignment-answers");
-  };
-
-  const handleMyInformationClick = () => {
-    navigate("/my-info");
-  };
-
-  const handleLogoutClick = () => {
-    localStorage.removeItem("token");
-    navigate("/login");
-  };
+  const buttons = isLoggedIn
+    ? [
+        {
+          label: "Assignment Registration",
+          path: "/assignment-registration",
+        },
+        {
+          label: "My Information",
+          path: "/my-info",
+        },
+        {
+          label: "Logout",
+          path: "/login",
+          onClick: () => localStorage.removeItem("token"),
+        },
+      ]
+    : [
+        {
+          label: "Login",
+          path: "/login",
+        },
+      ];
 
   return (
-    <header style={headerStyle}>
+    <header style={{ marginBottom: "20px" }}>
       <nav>
-        <div>
-          <ul className="nav nav-tabs nav-justified">
-            <li>
+        <ul className="nav nav-tabs nav-justified">
+          <li>
+            <button
+              className="btn btn-default navbar-btn"
+              onClick={() => handleNavigation("/main")}
+            >
+              Home
+            </button>
+          </li>
+          <li>
+            <button
+              className="btn btn-default navbar-btn"
+              onClick={() => handleNavigation("/chatbot")}
+            >
+              ChatGPT bot
+            </button>
+          </li>
+          <li>
+            <button
+              className="btn btn-default navbar-btn"
+              onClick={() => handleNavigation("/assignment-answers")}
+            >
+              Assignment Answers
+            </button>
+          </li>
+          {buttons.map(({ label, path, onClick }) => (
+            <li key={label}>
               <button
                 className="btn btn-default navbar-btn"
-                onClick={handleHomeClick}
+                onClick={() => {
+                  handleNavigation(path);
+                  if (onClick) onClick();
+                }}
               >
-                Home
+                {label}
               </button>
             </li>
-            <li>
-              <button
-                className="btn btn-default navbar-btn"
-                onClick={handleAssignmentRegistrationClick}
-              >
-                Assignment Registration
-              </button>
-            </li>
-            <li>
-              <button
-                className="btn btn-default navbar-btn"
-                onClick={handleAssignmentAnswerClick}
-              >
-                Assignment Answers
-              </button>
-            </li>
-            <li>
-              <button
-                className="btn btn-default navbar-btn"
-                onClick={handleMyInformationClick}
-              >
-                My Information
-              </button>
-            </li>
-            <li>
-              <button
-                className="btn btn-default navbar-btn"
-                onClick={handleLogoutClick}
-              >
-                Logout
-              </button>
-            </li>
-          </ul>
-        </div>
+          ))}
+        </ul>
       </nav>
     </header>
   );

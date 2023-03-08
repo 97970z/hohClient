@@ -1,24 +1,29 @@
 import React, { useState, useEffect } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Header from "./header/Header";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const EditInfo = () => {
   const [username, setUsername] = useState("");
-  const [error, setError] = useState("");
+  const [password, setPassword] = useState("");
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isUsernameValid, setIsUsernameValid] = useState(false);
+  const [error, setError] = useState("");
+
+  const navigate = useNavigate();
   const location = useLocation();
   const user = location.state.user;
 
   useEffect(() => {
     const getUserInfo = async () => {
-      const token = localStorage.getItem("token");
-      const config = {
-        headers: {
-          Authorization: `${token}`,
-        },
-      };
       try {
+        const token = localStorage.getItem("token");
+        const config = {
+          headers: {
+            Authorization: `${token}`,
+          },
+        };
         const res = await axios.get("/api/auth/me", config);
         setUsername(res.data.name);
       } catch (err) {
@@ -35,15 +40,20 @@ const EditInfo = () => {
     setIsUsernameValid(false);
   };
 
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+    setError("");
+  };
+
+  const togglePasswordVisibility = () => {
+    setIsPasswordVisible((prevValue) => !prevValue);
+  };
+
   const handleDuplicateCheck = async (event) => {
     event.preventDefault();
     try {
       const res = await axios.get(`/api/users/duplicate-check/${username}`);
-      if (res.data.message !== "Username is available") {
-        setIsUsernameValid(false);
-      } else {
-        setIsUsernameValid(true);
-      }
+      setIsUsernameValid(res.data.message === "Username is available");
       setError(res.data.message);
     } catch (err) {
       console.error("err:", err.message);
@@ -52,18 +62,22 @@ const EditInfo = () => {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem("token");
-    const config = {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `${token}`,
-      },
-    };
     try {
+      const token = localStorage.getItem("token");
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `${token}`,
+        },
+      };
+
       const data = { name: username };
+      if (password) {
+        data.password = password;
+      }
       const res = await axios.put(`/api/users/${user._id}`, data, config);
       console.log(res.data);
-      window.location.href = "/my-info";
+      navigate("/my-info");
     } catch (err) {
       console.error(err.response.data);
       setError(err.response.data);
@@ -96,14 +110,33 @@ const EditInfo = () => {
             </button>
           </div>
           {error && <div className="alert alert-info">{error}</div>}
-          <button
-            type="submit"
-            className="btn btn-primary"
-            disabled={!isUsernameValid}
-          >
-            Save Changes
-          </button>
         </div>
+        <div className="form-group">
+          <label htmlFor="password">New Password</label>
+          <div className="input-group">
+            <input
+              type={isPasswordVisible ? "text" : "password"}
+              className="form-control"
+              id="password"
+              value={password}
+              onChange={handlePasswordChange}
+            />
+            <button
+              type="button"
+              className="btn btn-outline-secondary"
+              onClick={togglePasswordVisibility}
+            >
+              {isPasswordVisible ? <FaEyeSlash /> : <FaEye />}
+            </button>
+          </div>
+        </div>
+        <button
+          type="submit"
+          className="btn btn-primary"
+          disabled={!isUsernameValid}
+        >
+          Save Changes
+        </button>
       </form>
     </div>
   );

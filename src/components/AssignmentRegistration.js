@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import AceEditor from "react-ace";
 import Header from "./header/Header";
-import "bootstrap/dist/css/bootstrap.css";
 import "ace-builds/src-noconflict/mode-javascript";
 import "ace-builds/src-noconflict/mode-python";
 import "ace-builds/src-noconflict/mode-c_cpp";
@@ -19,7 +18,6 @@ const AssignmentRegistration = () => {
   const [expiration, setExpiration] = useState("");
   const [content, setContent] = useState("");
   const [points, setPoints] = useState("");
-  const [user, setUser] = useState({});
   const [language, setLanguage] = useState("javascript");
 
   let date = new Date();
@@ -28,59 +26,58 @@ const AssignmentRegistration = () => {
   let dateOffsetString = dateOffset.toISOString().split("T")[0];
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const config = {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `${token}`,
-      },
-    };
-    axios
-      .get("/api/auth/me", config)
-      .then((res) => {
-        setAuthor(res.data.name);
-        setUser(res.data);
-      })
-      .catch((err) => {
+    const fetchAuthor = async () => {
+      const token = localStorage.getItem("token");
+      const config = {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `${token}`,
+        },
+      };
+      try {
+        const { data } = await axios.get(`/api/auth/me`, config);
+        setAuthor(data._id);
+      } catch (err) {
         console.error(err);
-      });
+      }
+    };
+    fetchAuthor();
   }, []);
+
+  const getFileExtension = (language) => {
+    switch (language) {
+      case "javascript":
+        return "js";
+      case "python":
+        return "py";
+      case "c_cpp":
+        return "c";
+      case "java":
+        return "java";
+      default:
+        return "coding";
+    }
+  };
 
   const onSubmit = async (e) => {
     e.preventDefault();
     try {
       let newGenre = genre;
       if (genre === "coding") {
-        switch (language) {
-          case "javascript":
-            newGenre = "js";
-            break;
-          case "python":
-            newGenre = "py";
-            break;
-          case "c_cpp":
-            newGenre = "c";
-            break;
-          case "java":
-            newGenre = "java";
-            break;
-          default:
-            newGenre = "coding";
-            break;
-        }
+        newGenre = getFileExtension(language);
       }
 
       const newAssignment = {
         title,
-        author: user._id,
+        author,
         genre: newGenre,
         expiration,
         createdAt: new Date(),
         content,
         points,
       };
-      const res = await axios.post("/api/assignments", newAssignment);
-      navigate("/main");
+      await axios.post("/api/assignments", newAssignment);
+      navigate("/assignment-answers");
     } catch (err) {
       console.error(err.message);
     }
@@ -101,6 +98,7 @@ const AssignmentRegistration = () => {
             type="text"
             className="form-control"
             id="title"
+            name="title"
             value={title}
             placeholder="제목을 입력하세요."
             onChange={(e) => setTitle(e.target.value)}

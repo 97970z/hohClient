@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import "bootstrap/dist/css/bootstrap.css";
+import Header from "./header/Header";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -10,8 +10,10 @@ const Signup = () => {
     password: "",
     confirmPassword: "",
   });
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
   const navigate = useNavigate();
 
   const { name, email, password, confirmPassword } = formData;
@@ -22,6 +24,10 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!isInputValid()) {
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await axios.post("/api/auth/register", {
@@ -32,10 +38,10 @@ const Signup = () => {
       });
       localStorage.setItem("token", res.data.token);
       setLoading(false);
-      navigate("/");
+      navigate("/main");
     } catch (err) {
+      handleErrors(err);
       setLoading(false);
-      setError(err.response.data.msg);
     }
   };
 
@@ -43,16 +49,44 @@ const Signup = () => {
     navigate("/login");
   };
 
+  const isInputValid = () => {
+    if (!name || !email || !password || !confirmPassword) {
+      setError("All fields are required.");
+      return false;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return false;
+    }
+
+    if (password.length < 6) {
+      setError("Password should be at least 6 characters long.");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleErrors = (err) => {
+    setError(err.response.data.msg);
+  };
+
   return (
     <div className="container">
       <h1>Sign up</h1>
-      {error && <div className="alert alert-danger">{error}</div>}
+      <Header />
+      {error && (
+        <div className="alert alert-info" color="danger">
+          {error}
+        </div>
+      )}
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label htmlFor="name">Name</label>
           <input
-            type="text"
             className="form-control"
+            type="text"
             id="name"
             name="name"
             value={name}
@@ -63,8 +97,8 @@ const Signup = () => {
         <div className="form-group">
           <label htmlFor="email">Email</label>
           <input
-            type="email"
             className="form-control"
+            type="email"
             id="email"
             name="email"
             value={email}
@@ -75,8 +109,8 @@ const Signup = () => {
         <div className="form-group">
           <label htmlFor="password">Password</label>
           <input
-            type="password"
             className="form-control"
+            type="password"
             id="password"
             name="password"
             value={password}
@@ -88,8 +122,8 @@ const Signup = () => {
         <div className="form-group">
           <label htmlFor="confirmPassword">Confirm Password</label>
           <input
-            type="password"
             className="form-control"
+            type="password"
             id="confirmPassword"
             name="confirmPassword"
             value={confirmPassword}
@@ -99,13 +133,14 @@ const Signup = () => {
           />
         </div>
         <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? "Loading..." : "Sign up"}
+          {loading ? "Loading..." : "Sign Up"}
         </button>
         <button
           type="button"
-          onClick={handleLink}
           className="btn btn-primary"
+          onClick={handleLink}
           disabled={loading}
+          style={{ marginLeft: "10px" }}
         >
           {loading ? "Loading..." : "Login"}
         </button>
