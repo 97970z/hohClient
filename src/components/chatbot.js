@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import axios from "axios";
 import Header from "./header/Header";
 
-const api_key = "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";
+const api_key = process.env.REACT_APP_OPENAI;
 
 const OpenAIChatbot = () => {
   const [history, setHistory] = useState([]);
