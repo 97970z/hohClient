@@ -52,7 +52,10 @@ const FloatingInput = ({
 
     try {
       await axios.post("/api/assignments/answer", newAnswer);
-      setSelectedAnswers([...selectedAnswers, newAnswer]);
+      const updatedAnswers = selectedAnswers
+        ? [...selectedAnswers, newAnswer]
+        : [newAnswer];
+      setSelectedAnswers(updatedAnswers);
       setShowInput(false);
     } catch (err) {
       console.error(err);

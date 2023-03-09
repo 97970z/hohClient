@@ -7,6 +7,7 @@ import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import "ace-builds/src-noconflict/mode-text";
 import "ace-builds/src-noconflict/theme-monokai";
+import "ace-builds/src-noconflict/theme-twilight";
 import "ace-builds/src-noconflict/theme-github";
 
 const AssignmentAnswers = () => {
@@ -19,11 +20,6 @@ const AssignmentAnswers = () => {
   const [stateExpanded, setStateExpanded] = useState(false);
   const [selectedAnswers, setSelectedAnswers] = useState([]);
   const [show, setShow] = useState(false);
-
-  const handleClose = () => {
-    setShow(false);
-  };
-  const handleShow = () => setShow(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -63,6 +59,7 @@ const AssignmentAnswers = () => {
     } else {
       setExpandedAssignmentId(id);
       toggleExpanded();
+
       const assignment = assignments.find((a) => a._id === id);
       if (assignment.answers.length > 0) {
         const answers = await Promise.all(
@@ -109,12 +106,36 @@ const AssignmentAnswers = () => {
     }
   };
 
+  const handleDeleteAnswer = async (answerId) => {
+    const token = localStorage.getItem("token");
+    const config = {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `${token}`,
+      },
+    };
+    try {
+      await axios.delete(`/api/assignments/answer/${answerId}`, config);
+      const newAnswers = selectedAnswers.filter((a) => a._id !== answerId);
+      setSelectedAnswers(newAnswers);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const toggleInput = (id) => {
     setShowInput(!showInput);
   };
 
   const toggleExpanded = () => {
     setStateExpanded(!stateExpanded);
+  };
+
+  const handleClose = () => {
+    setShow(false);
+  };
+  const handleShow = () => {
+    setShow(true);
   };
 
   const sortedAssignments = assignments.sort(
@@ -129,14 +150,7 @@ const AssignmentAnswers = () => {
         <div key={assignment._id} className="card mb-3">
           {expandedAssignmentId === assignment._id && isLoggedIn && (
             <>
-              <button
-                type="button"
-                className="btn btn-primary"
-                onClick={toggleInput}
-              >
-                Register
-              </button>
-              {assignment.author === author && (
+              {assignment.author === author ? (
                 <button
                   type="button"
                   className="btn btn-danger"
@@ -144,20 +158,27 @@ const AssignmentAnswers = () => {
                 >
                   Delete
                 </button>
-              )}
+              ) : null}
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={toggleInput}
+              >
+                Register
+              </button>
               <Modal show={show} onHide={handleClose}>
                 <Modal.Header closeButton>
-                  <Modal.Title>Modal heading</Modal.Title>
+                  <Modal.Title>Delete Assignment</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                  Woohoo, you're reading this text in a modal!
+                  과제를 삭제하시겠습니까? 삭제하면 되돌릴 수 없습니다.
                 </Modal.Body>
                 <Modal.Footer>
                   <Button variant="secondary" onClick={handleClose}>
                     Close
                   </Button>
                   <Button variant="primary" onClick={handleDelete}>
-                    Delete Assignment
+                    Delete
                   </Button>
                 </Modal.Footer>
               </Modal>
@@ -184,16 +205,43 @@ const AssignmentAnswers = () => {
                     useWorker: false,
                     readOnly: true,
                   }}
-                  style={{ width: "100%", height: "300px" }}
+                  style={{ width: "100%", height: "200px" }}
                 />
+                <hr></hr>
+                <h5>ChatGPT's Answer</h5>
+                <AceEditor
+                  mode="text"
+                  theme="twilight"
+                  value={assignment.gptanswer}
+                  setOptions={{
+                    useWorker: false,
+                    readOnly: true,
+                    wrap: true, // Add wrap option
+                  }}
+                  style={{ width: "100%", height: "100px" }}
+                />
+
                 {showInput && (
                   <FloatingInput
                     title={assignment.title}
                     assignmentId={assignment._id}
+                    selectedAnswers={selectedAnswers}
+                    setSelectedAnswers={setSelectedAnswers}
                   />
                 )}
                 {selectedAnswers.map((answer) => (
                   <div key={answer.content}>
+                    <hr></hr>
+                    <h5>User's Answer</h5>
+                    {answer.author === author ? (
+                      <button
+                        type="button"
+                        className="btn btn-danger"
+                        onClick={() => handleDeleteAnswer(answer._id)}
+                      >
+                        Delete
+                      </button>
+                    ) : null}
                     <AceEditor
                       mode="text"
                       theme="monokai"
