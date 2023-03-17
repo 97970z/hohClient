@@ -1,17 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import AceEditor from "react-ace";
-import Header from "./header/Header";
-import "ace-builds/src-noconflict/mode-javascript";
-import "ace-builds/src-noconflict/mode-python";
-import "ace-builds/src-noconflict/mode-c_cpp";
-import "ace-builds/src-noconflict/mode-java";
-import "ace-builds/src-noconflict/theme-monokai";
-import "ace-builds/src-noconflict/theme-github";
+import { Header, AceEditor } from "./header/Header";
+import { Form, Button, Alert, Spinner } from "react-bootstrap";
 
 const AssignmentRegistration = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [title, setTitle] = useState("");
   const [author, setAuthor] = useState("");
   const [genre, setGenre] = useState("");
@@ -27,6 +23,7 @@ const AssignmentRegistration = () => {
   let dateOffsetString = dateOffset.toISOString().split("T")[0];
 
   useEffect(() => {
+    setLoading(true);
     const fetchAuthor = async () => {
       const token = localStorage.getItem("token");
       const config = {
@@ -37,28 +34,16 @@ const AssignmentRegistration = () => {
       };
       try {
         const { data } = await axios.get(`/api/auth/me`, config);
+        setLoading(false);
         setAuthor(data._id);
       } catch (err) {
+        setLoading(false);
+        setError(err);
         console.error(err);
       }
     };
     fetchAuthor();
   }, []);
-
-  const getFileExtension = (language) => {
-    switch (language) {
-      case "javascript":
-        return "js";
-      case "python":
-        return "py";
-      case "c_cpp":
-        return "c";
-      case "java":
-        return "java";
-      default:
-        return "coding";
-    }
-  };
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -84,16 +69,16 @@ const AssignmentRegistration = () => {
           console.log(response.data.choices[0].message.content);
           return response.data.choices[0].message.content;
         })
-        .catch((error) => {
-          console.error(error);
-          return "현재 ChatGPT 서버에 문제가 있습니다.";
+        .catch((err) => {
+          console.error(err);
+          return "현재 ChatGPT 서버에 문제가 있어서 답변을 받아올 수 없습니다.";
         });
 
       gptanswer = gptanswer.replace(/(.*\n){1,2}/, "");
 
       let newGenre = genre;
       if (genre === "coding") {
-        newGenre = getFileExtension(language);
+        newGenre = language;
       }
       const newAssignment = {
         title,
@@ -121,46 +106,43 @@ const AssignmentRegistration = () => {
 
   return (
     <div className="container">
-      <h1>Assignment Registration</h1>
+      <h1 className="mb-4">Assignment Registration</h1>
       <Header />
+      {error && <Alert variant="danger">{error}</Alert>}
+      {loading && (
+        <div className="d-flex justify-content-center align-items-center">
+          <Spinner animation="border" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </Spinner>
+        </div>
+      )}
       {isLoading ? (
         <div className="d-flex justify-content-center mt-5">
-          <div>ChatGPT의 답변을 받아오는중...</div>
-          <div className="spinner-border" role="status">
+          <div>ChatGPT에게 물어보는중...</div>
+          <Spinner animation="border" role="status">
             <span className="sr-only"></span>
-          </div>
+          </Spinner>
         </div>
       ) : (
-        <form onSubmit={onSubmit}>
-          <div className="form-group">
-            <label htmlFor="title">Title</label>
-            <input
+        <Form onSubmit={onSubmit}>
+          <Form.Group controlId="title">
+            <Form.Label>Title</Form.Label>
+            <Form.Control
               type="text"
-              className="form-control"
-              id="title"
-              name="title"
               value={title}
               placeholder="제목을 입력하세요."
               onChange={(e) => setTitle(e.target.value)}
               required
             />
-          </div>
-          <div className="form-group">
-            <label htmlFor="author">Author</label>
-            <input
-              type="text"
-              className="form-control"
-              id="author"
-              value={author}
-              disabled
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="genre">Genre</label>
-            <select
-              className="form-control"
-              id="genre"
+          </Form.Group>
+          <Form.Group controlId="author">
+            <Form.Label>Author</Form.Label>
+            <Form.Control type="text" value={author} disabled required />
+          </Form.Group>
+          <Form.Group controlId="genre">
+            <Form.Label>Genre</Form.Label>
+            <Form.Control
+              as="select"
               value={genre}
               onChange={(e) => setGenre(e.target.value)}
               required
@@ -168,40 +150,36 @@ const AssignmentRegistration = () => {
               <option value="">질문 종류를 선택하세요.</option>
               <option value="coding">Coding</option>
               <option value="writing">Writing</option>
-              <option value="math">Math</option>
-            </select>
-            {genre === "coding" && (
-              <div className="form-group">
-                <label htmlFor="language">Programming Language</label>
-                <select
-                  className="form-control"
-                  id="language"
-                  value={language}
-                  onChange={handleLanguageChange}
-                >
-                  <option value="">Select a language</option>
-                  <option value="javascript">JavaScript</option>
-                  <option value="python">Python</option>
-                  <option value="c_cpp">C/C++</option>
-                  <option value="java">Java</option>
-                </select>
-              </div>
-            )}
-          </div>
-          <div className="form-group">
-            <label htmlFor="expiration">Expiration Date</label>
-            <input
+            </Form.Control>
+          </Form.Group>
+          {genre === "coding" && (
+            <Form.Group controlId="language">
+              <Form.Label>Programming Language</Form.Label>
+              <Form.Control
+                as="select"
+                value={language}
+                onChange={handleLanguageChange}
+              >
+                <option value="">Select a language</option>
+                <option value="javascript">JavaScript</option>
+                <option value="python">Python</option>
+                <option value="c_cpp">C/C++</option>
+                <option value="java">Java</option>
+              </Form.Control>
+            </Form.Group>
+          )}
+          <Form.Group controlId="expiration">
+            <Form.Label>Expiration Date</Form.Label>
+            <Form.Control
               type="date"
-              className="form-control"
-              id="expiration"
               value={expiration}
               min={dateOffsetString}
               onChange={(e) => setExpiration(e.target.value)}
               required
             />
-          </div>
-          <div className="form-group">
-            <label htmlFor="content">Content</label>
+          </Form.Group>
+          <Form.Group controlId="content">
+            <Form.Label>Content</Form.Label>
             <AceEditor
               mode={language}
               theme={genre === "coding" ? "monokai" : "github"}
@@ -215,26 +193,23 @@ const AssignmentRegistration = () => {
               onChange={(value) => setContent(value)}
               required
             />
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="points">Points</label>
-            <input
+          </Form.Group>
+          <Form.Group controlId="points">
+            <Form.Label>Points</Form.Label>
+            <Form.Control
               type="number"
-              className="form-control"
-              id="points"
+              value={points}
               minLength="1"
               maxLength="5"
               placeholder="해결포인트를 입력하세요. (1~5)"
-              value={points}
               onChange={(e) => setPoints(e.target.value)}
               required
             />
-          </div>
-          <button type="submit" className="btn btn-primary mr-2">
+          </Form.Group>
+          <Button variant="outline-primary" className="mr-2" type="submit">
             Create
-          </button>
-        </form>
+          </Button>
+        </Form>
       )}
     </div>
   );

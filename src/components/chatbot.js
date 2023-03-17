@@ -1,6 +1,14 @@
 import React, { useState } from "react";
 import axios from "axios";
-import Header from "./header/Header";
+import { Header } from "./header/Header";
+import {
+  Container,
+  Form,
+  Button,
+  InputGroup,
+  Card,
+  ListGroup,
+} from "react-bootstrap";
 
 const api_key = process.env.REACT_APP_OPENAI;
 
@@ -49,30 +57,39 @@ const OpenAIChatbot = () => {
   };
 
   return (
-    <div className="container">
-      <h1>ChatGPT bot</h1>
+    <Container>
+      <h1 className="mt-3">ChatGPT bot</h1>
       <Header />
-      <div style={{ minHeight: "400px" }}>
-        {conversation.map((message, index) => (
-          <div key={index}>
-            {index % 2 === 0 ? "User: " : "Chatbot: "}
-            {message}
-          </div>
-        ))}
-      </div>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={inputMessage}
-          onChange={(e) => setInputMessage(e.target.value)}
-          placeholder="Enter text and press enter"
-        />
-        <button type="submit">Submit</button>
-        <button type="button" onClick={startNewConversation}>
+      <Card className="mb-4" style={{ minHeight: "400px" }}>
+        <ListGroup variant="flush">
+          {conversation.map((message, index) => (
+            <ListGroup.Item key={index}>
+              <strong>{index % 2 === 0 ? "User: " : "Chatbot: "}</strong>
+              {message}
+            </ListGroup.Item>
+          ))}
+        </ListGroup>
+      </Card>
+      <Form onSubmit={handleSubmit}>
+        <Form.Group controlId="userMessage">
+          <InputGroup>
+            <Form.Control
+              type="text"
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              placeholder="Enter text and press enter"
+            />
+
+            <Button variant="primary" type="submit">
+              Submit
+            </Button>
+          </InputGroup>
+        </Form.Group>
+        <Button variant="secondary" onClick={startNewConversation}>
           Start a new conversation
-        </button>
-      </form>
-    </div>
+        </Button>
+      </Form>
+    </Container>
   );
 };
 

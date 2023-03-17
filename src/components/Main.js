@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Header from "./header/Header";
+import { Header } from "./header/Header";
+import { Container, Table, Alert, Spinner } from "react-bootstrap";
 
 const Main = () => {
   const [loading, setLoading] = useState(false);
@@ -21,23 +22,33 @@ const Main = () => {
       });
   }, []);
 
+  const sortedUserData = userData
+    ? [...userData].sort((a, b) => b.points - a.points)
+    : null;
+
   return (
-    <div className="container">
-      <h1>Main Page</h1>
+    <Container>
+      <h1 className="mt-3">Main Page</h1>
       <Header />
-      {error && <div className="alert alert-danger">{error}</div>}
-      {loading && <div className="alert alert-info">Loading...</div>}
-      {userData && Array.isArray(userData) && (
-        <table className="table">
+      {error && <Alert variant="danger">{error}</Alert>}
+      {loading && (
+        <div className="d-flex justify-content-center align-items-center">
+          <Spinner animation="border" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </Spinner>
+        </div>
+      )}
+      {sortedUserData && Array.isArray(sortedUserData) && (
+        <Table striped bordered hover responsive className="mt-3">
           <thead>
             <tr>
               <th>Name</th>
-              <th>email</th>
+              <th>Email</th>
               <th>Points</th>
             </tr>
           </thead>
           <tbody>
-            {userData.map((user) => (
+            {sortedUserData.map((user) => (
               <tr key={user._id}>
                 <td>{user.name}</td>
                 <td>{user.email}</td>
@@ -45,9 +56,9 @@ const Main = () => {
               </tr>
             ))}
           </tbody>
-        </table>
+        </Table>
       )}
-    </div>
+    </Container>
   );
 };
 

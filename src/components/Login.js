@@ -1,7 +1,16 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Header from "./header/Header";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { Header } from "./header/Header";
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  Form,
+  Button,
+  Alert,
+} from "react-bootstrap";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -36,48 +45,59 @@ const Login = () => {
   };
 
   return (
-    <div className="container">
-      <h1>Login</h1>
+    <Container>
       <Header />
-      {error && <div className="alert alert-danger">{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="email">Email</label>
-          <input
-            type="email"
-            className="form-control"
-            id="email"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="password">Password</label>
-          <input
-            type="password"
-            className="form-control"
-            id="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? "Loading..." : "Login"}
-        </button>
-        <button
-          type="button"
-          onClick={handleLink}
-          className="btn btn-primary"
-          disabled={loading}
-        >
-          {loading ? "Loading..." : "Sign up"}
-        </button>
-      </form>
-    </div>
+      <Row className="justify-content-center mt-5">
+        <Col lg={6} md={8} sm={12}>
+          <Card>
+            <Card.Header>
+              <h1>Login</h1>
+            </Card.Header>
+            <Card.Body>
+              {error && <Alert variant="danger">{error}</Alert>}
+              <Form onSubmit={handleSubmit}>
+                <Form.Group controlId="email">
+                  <Form.Label>Email</Form.Label>
+                  <Form.Control
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                  />
+                </Form.Group>
+                <Form.Group controlId="password">
+                  <Form.Label>Password</Form.Label>
+                  <Form.Control
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                  />
+                </Form.Group>
+                <Button
+                  type="submit"
+                  className="me-3"
+                  variant="outline-primary"
+                  disabled={loading}
+                >
+                  {loading ? "Loading..." : "Login"}
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleLink}
+                  variant="outline-secondary"
+                  disabled={loading}
+                >
+                  {loading ? "Loading..." : "Sign up"}
+                </Button>
+              </Form>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 

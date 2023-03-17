@@ -1,8 +1,16 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
-import Header from "./header/Header";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Header } from "./header/Header";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
+import {
+  Container,
+  Form,
+  Button,
+  Alert,
+  InputGroup,
+  FormControl,
+} from "react-bootstrap";
 
 const EditInfo = () => {
   const [username, setUsername] = useState("");
@@ -85,60 +93,50 @@ const EditInfo = () => {
   };
 
   return (
-    <div className="container">
-      <h1>Edit User Information</h1>
+    <Container>
       <Header />
-      <form onSubmit={handleEditSubmit}>
-        <div className="form-group">
-          <label htmlFor="username">Username</label>
-          <div className="input-group">
-            <input
+      <h1 className="mt-3">Edit User Information</h1>
+      <Form onSubmit={handleEditSubmit}>
+        <Form.Group controlId="username">
+          <Form.Label>Username</Form.Label>
+          <InputGroup>
+            <FormControl
               type="text"
-              className="form-control"
-              id="username"
               value={username}
               onChange={handleUsernameChange}
               required
             />
-            <button
-              className="btn btn-outline-secondary"
-              type="button"
-              id="duplicate-check-btn"
-              onClick={handleDuplicateCheck}
-            >
+            <Button variant="outline-secondary" onClick={handleDuplicateCheck}>
               Check
-            </button>
-          </div>
-          {error && <div className="alert alert-info">{error}</div>}
-        </div>
-        <div className="form-group">
-          <label htmlFor="password">New Password</label>
-          <div className="input-group">
-            <input
+            </Button>
+          </InputGroup>
+          {error && <Alert variant="info">{error}</Alert>}
+        </Form.Group>
+        <Form.Group controlId="password">
+          <Form.Label>New Password</Form.Label>
+          <InputGroup>
+            <FormControl
               type={isPasswordVisible ? "text" : "password"}
-              className="form-control"
-              id="password"
               value={password}
               onChange={handlePasswordChange}
             />
-            <button
-              type="button"
-              className="btn btn-outline-secondary"
+            <Button
+              variant="outline-secondary"
               onClick={togglePasswordVisibility}
             >
               {isPasswordVisible ? <FaEyeSlash /> : <FaEye />}
-            </button>
-          </div>
-        </div>
-        <button
+            </Button>
+          </InputGroup>
+        </Form.Group>
+        <Button
           type="submit"
-          className="btn btn-primary"
+          variant="outline-primary"
           disabled={!isUsernameValid}
         >
           Save Changes
-        </button>
-      </form>
-    </div>
+        </Button>
+      </Form>
+    </Container>
   );
 };
 

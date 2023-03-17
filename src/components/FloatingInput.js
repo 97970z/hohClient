@@ -1,16 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import AceEditor from "react-ace";
-import { Button, Form } from "react-bootstrap";
-import "ace-builds/src-noconflict/mode-javascript";
-import "ace-builds/src-noconflict/theme-monokai";
-
-const FloatingInputStyle = {
-  backgroundColor: "white",
-  padding: "1rem",
-  border: "1px solid black",
-  borderRadius: "5px",
-};
+import { AceEditor } from "./header/Header";
+import { Button, Form, Card, Container, Row, Col } from "react-bootstrap";
 
 const FloatingInput = ({
   title: assignmentTitle,
@@ -57,6 +48,7 @@ const FloatingInput = ({
         : [newAnswer];
       setSelectedAnswers(updatedAnswers);
       setShowInput(false);
+      console.log(selectedAnswers);
     } catch (err) {
       console.error(err);
     }
@@ -68,37 +60,39 @@ const FloatingInput = ({
   };
 
   return (
-    <div className="fixed-bottom">
+    <Container fluid className="fixed-bottom mb-4">
       {showInput && (
-        <div className="container" style={FloatingInputStyle}>
-          <div className="row">
-            <div className="col-12">
-              <Form onSubmit={handleSubmit}>
-                <Form.Group controlId="formAnswer">
-                  선택한 질문 : {assignmentTitle}
-                  <AceEditor
-                    mode="javascript"
-                    theme="monokai"
-                    setOptions={{
-                      useWorker: false,
-                    }}
-                    style={{ width: "100%", height: "100px" }}
-                    value={answer}
-                    onChange={(answer) => setAnswer(answer)}
-                  />
-                </Form.Group>
-                <Button type="submit" className="me-2">
-                  Register
-                </Button>
-                <Button variant="secondary" onClick={handleCancel}>
-                  Cancel
-                </Button>
-              </Form>
-            </div>
-          </div>
-        </div>
+        <Row className="justify-content-center">
+          <Col lg={8} md={10} sm={12}>
+            <Card>
+              <Card.Header>선택한 질문: {assignmentTitle}</Card.Header>
+              <Card.Body>
+                <Form onSubmit={handleSubmit}>
+                  <Form.Group controlId="formAnswer">
+                    <AceEditor
+                      mode="javascript"
+                      theme="monokai"
+                      setOptions={{
+                        useWorker: false,
+                      }}
+                      style={{ width: "100%", height: "100px" }}
+                      value={answer}
+                      onChange={(answer) => setAnswer(answer)}
+                    />
+                  </Form.Group>
+                  <Button type="submit" className="me-2">
+                    Register
+                  </Button>
+                  <Button variant="secondary" onClick={handleCancel}>
+                    Cancel
+                  </Button>
+                </Form>
+              </Card.Body>
+            </Card>
+          </Col>
+        </Row>
       )}
-    </div>
+    </Container>
   );
 };
 

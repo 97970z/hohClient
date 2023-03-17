@@ -1,6 +1,16 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { Navbar, Nav } from "react-bootstrap";
+import AceEditor from "react-ace";
 import "bootstrap/dist/css/bootstrap.css";
+import "ace-builds/src-noconflict/theme-solarized_light";
+import "ace-builds/src-noconflict/theme-monokai";
+import "ace-builds/src-noconflict/theme-github";
+import "ace-builds/src-noconflict/mode-javascript";
+import "ace-builds/src-noconflict/mode-python";
+import "ace-builds/src-noconflict/mode-c_cpp";
+import "ace-builds/src-noconflict/mode-java";
+import "ace-builds/src-noconflict/mode-text";
 
 const Header = () => {
   const navigate = useNavigate();
@@ -35,49 +45,35 @@ const Header = () => {
 
   return (
     <header style={{ marginBottom: "20px" }}>
-      <nav>
-        <ul className="nav nav-tabs nav-justified">
-          <li>
-            <button
-              className="btn btn-default navbar-btn"
-              onClick={() => handleNavigation("/main")}
-            >
-              Home
-            </button>
-          </li>
-          <li>
-            <button
-              className="btn btn-default navbar-btn"
-              onClick={() => handleNavigation("/chatbot")}
-            >
+      <Navbar expand="lg">
+        <Navbar.Brand onClick={() => handleNavigation("/main")}>
+          Home
+        </Navbar.Brand>
+        <Navbar.Toggle aria-controls="basic-navbar-nav" />
+        <Navbar.Collapse id="basic-navbar-nav">
+          <Nav className="mr-auto">
+            <Nav.Link onClick={() => handleNavigation("/chatbot")}>
               ChatGPT bot
-            </button>
-          </li>
-          <li>
-            <button
-              className="btn btn-default navbar-btn"
-              onClick={() => handleNavigation("/assignment-answers")}
-            >
+            </Nav.Link>
+            <Nav.Link onClick={() => handleNavigation("/assignment-answers")}>
               Assignment Answers
-            </button>
-          </li>
-          {buttons.map(({ label, path, onClick }) => (
-            <li key={label}>
-              <button
-                className="btn btn-default navbar-btn"
+            </Nav.Link>
+            {buttons.map(({ label, path, onClick }) => (
+              <Nav.Link
+                key={label}
                 onClick={() => {
                   handleNavigation(path);
                   if (onClick) onClick();
                 }}
               >
                 {label}
-              </button>
-            </li>
-          ))}
-        </ul>
-      </nav>
+              </Nav.Link>
+            ))}
+          </Nav>
+        </Navbar.Collapse>
+      </Navbar>
     </header>
   );
 };
 
-export default Header;
+export { Header, AceEditor };

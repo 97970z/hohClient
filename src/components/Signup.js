@@ -1,7 +1,17 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Header } from "./header/Header";
+import {
+  Container,
+  Row,
+  Col,
+  Card,
+  Form,
+  Button,
+  Alert,
+  Spinner,
+} from "react-bootstrap";
 import axios from "axios";
-import Header from "./header/Header";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -73,79 +83,92 @@ const Signup = () => {
   };
 
   return (
-    <div className="container">
-      <h1>Sign up</h1>
+    <Container>
       <Header />
-      {error && (
-        <div className="alert alert-info" color="danger">
-          {error}
-        </div>
-      )}
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="name">Name</label>
-          <input
-            className="form-control"
-            type="text"
-            id="name"
-            name="name"
-            value={name}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="email">Email</label>
-          <input
-            className="form-control"
-            type="email"
-            id="email"
-            name="email"
-            value={email}
-            onChange={handleChange}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="password">Password</label>
-          <input
-            className="form-control"
-            type="password"
-            id="password"
-            name="password"
-            value={password}
-            onChange={handleChange}
-            minLength="6"
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="confirmPassword">Confirm Password</label>
-          <input
-            className="form-control"
-            type="password"
-            id="confirmPassword"
-            name="confirmPassword"
-            value={confirmPassword}
-            onChange={handleChange}
-            minLength="6"
-            required
-          />
-        </div>
-        <button type="submit" className="btn btn-primary" disabled={loading}>
-          {loading ? "Loading..." : "Sign Up"}
-        </button>
-        <button
-          type="button"
-          className="btn btn-primary"
-          onClick={handleLink}
-          disabled={loading}
-          style={{ marginLeft: "10px" }}
-        >
-          {loading ? "Loading..." : "Login"}
-        </button>
-      </form>
-    </div>
+      <Row className="justify-content-center mt-5">
+        <Col lg={6} md={8} sm={12}>
+          <Card>
+            <Card.Header>
+              <h1>Sign Up</h1>
+            </Card.Header>
+            <Card.Body>
+              {error && <Alert variant="danger">{error}</Alert>}
+              <Form onSubmit={handleSubmit}>
+                <Form.Group controlId="name">
+                  <Form.Label>Name</Form.Label>
+                  <Form.Control
+                    type="text"
+                    name="name"
+                    value={name}
+                    onChange={handleChange}
+                    required
+                  />
+                </Form.Group>
+                <Form.Group controlId="email">
+                  <Form.Label>Email</Form.Label>
+                  <Form.Control
+                    type="email"
+                    name="email"
+                    value={email}
+                    onChange={handleChange}
+                    required
+                  />
+                </Form.Group>
+                <Form.Group controlId="password">
+                  <Form.Label>Password</Form.Label>
+                  <Form.Control
+                    type="password"
+                    name="password"
+                    value={password}
+                    onChange={handleChange}
+                    minLength="6"
+                    required
+                  />
+                </Form.Group>
+                <Form.Group controlId="confirmPassword">
+                  <Form.Label>Confirm Password</Form.Label>
+                  <Form.Control
+                    type="password"
+                    name="confirmPassword"
+                    value={confirmPassword}
+                    onChange={handleChange}
+                    minLength="6"
+                    required
+                  />
+                </Form.Group>
+                <Button
+                  type="submit"
+                  variant="outline-primary"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <Spinner animation="border" size="sm" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </Spinner>
+                  ) : (
+                    "Sign Up"
+                  )}
+                </Button>
+                <Button
+                  variant="outline-secondary"
+                  onClick={handleLink}
+                  disabled={loading}
+                  style={{ marginLeft: "10px" }}
+                >
+                  {loading ? (
+                    <Spinner animation="border" size="sm" role="status">
+                      <span className="visually-hidden">Loading...</span>
+                    </Spinner>
+                  ) : (
+                    "Login"
+                  )}
+                </Button>
+              </Form>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 
