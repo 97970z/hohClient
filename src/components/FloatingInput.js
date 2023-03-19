@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { AceEditor } from "./header/Header";
-import { Button, Form, Card, Container, Row, Col } from "react-bootstrap";
+import { Button, Form, Card, Modal } from "react-bootstrap";
 
 const FloatingInput = ({
   title: assignmentTitle,
   assignmentId,
   selectedAnswers,
   setSelectedAnswers,
+  showInput,
+  setShowInput,
 }) => {
   const [answer, setAnswer] = useState("");
   const [author, setAuthor] = useState("");
-  const [showInput, setShowInput] = useState(true);
 
   useEffect(() => {
     const fetchAuthor = async () => {
@@ -42,10 +43,11 @@ const FloatingInput = ({
     };
 
     try {
-      await axios.post("/api/assignments/answer", newAnswer);
+      const response = await axios.post("/api/assignments/answer", newAnswer);
+      const savedAnswer = response.data;
       const updatedAnswers = selectedAnswers
-        ? [...selectedAnswers, newAnswer]
-        : [newAnswer];
+        ? [...selectedAnswers, savedAnswer]
+        : [savedAnswer];
       setSelectedAnswers(updatedAnswers);
       setShowInput(false);
       console.log(selectedAnswers);
@@ -60,39 +62,34 @@ const FloatingInput = ({
   };
 
   return (
-    <Container fluid className="fixed-bottom mb-4">
-      {showInput && (
-        <Row className="justify-content-center">
-          <Col lg={8} md={10} sm={12}>
-            <Card>
-              <Card.Header>선택한 질문: {assignmentTitle}</Card.Header>
-              <Card.Body>
-                <Form onSubmit={handleSubmit}>
-                  <Form.Group controlId="formAnswer">
-                    <AceEditor
-                      mode="javascript"
-                      theme="monokai"
-                      setOptions={{
-                        useWorker: false,
-                      }}
-                      style={{ width: "100%", height: "100px" }}
-                      value={answer}
-                      onChange={(answer) => setAnswer(answer)}
-                    />
-                  </Form.Group>
-                  <Button type="submit" className="me-2">
-                    Register
-                  </Button>
-                  <Button variant="secondary" onClick={handleCancel}>
-                    Cancel
-                  </Button>
-                </Form>
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-      )}
-    </Container>
+    <Modal show={showInput} onHide={handleCancel} centered>
+      <Card>
+        <Card.Header>Selected Question: {assignmentTitle}</Card.Header>
+        <Card.Body>
+          <Form onSubmit={handleSubmit}>
+            <Form.Group controlId="formAnswer">
+              <Form.Label>Answer</Form.Label>
+              <AceEditor
+                mode="javascript"
+                theme="monokai"
+                setOptions={{
+                  useWorker: false,
+                }}
+                style={{ width: "100%", height: "100px" }}
+                value={answer}
+                onChange={(answer) => setAnswer(answer)}
+              />
+            </Form.Group>
+            <Button type="submit" className="me-2">
+              Register
+            </Button>
+            <Button variant="secondary" onClick={handleCancel}>
+              Cancel
+            </Button>
+          </Form>
+        </Card.Body>
+      </Card>
+    </Modal>
   );
 };
 

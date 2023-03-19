@@ -29,6 +29,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
+
     try {
       const res = await axios.post("/api/auth/login", formData);
       localStorage.setItem("token", res.data.token);
@@ -45,7 +46,7 @@ const Login = () => {
   };
 
   return (
-    <Container>
+    <Container className="my-4">
       <Header />
       <Row className="justify-content-center mt-5">
         <Col lg={6} md={8} sm={12}>

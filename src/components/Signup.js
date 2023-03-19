@@ -34,11 +34,12 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+
     if (!isInputValid()) {
       return;
     }
 
-    setLoading(true);
     try {
       const res = await axios.post("/api/auth/register", {
         name,
@@ -83,7 +84,7 @@ const Signup = () => {
   };
 
   return (
-    <Container>
+    <Container className="my-4">
       <Header />
       <Row className="justify-content-center mt-5">
         <Col lg={6} md={8} sm={12}>

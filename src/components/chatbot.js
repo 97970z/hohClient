@@ -57,9 +57,9 @@ const OpenAIChatbot = () => {
   };
 
   return (
-    <Container>
-      <h1 className="mt-3">ChatGPT bot</h1>
+    <Container className="my-4">
       <Header />
+      <h1>ChatGPT bot</h1>
       <Card className="mb-4" style={{ minHeight: "400px" }}>
         <ListGroup variant="flush">
           {conversation.map((message, index) => (

@@ -10,6 +10,9 @@ import {
   Alert,
   InputGroup,
   FormControl,
+  Card,
+  Row,
+  Col,
 } from "react-bootstrap";
 
 const EditInfo = () => {
@@ -93,49 +96,62 @@ const EditInfo = () => {
   };
 
   return (
-    <Container>
+    <Container className="my-4">
       <Header />
-      <h1 className="mt-3">Edit User Information</h1>
-      <Form onSubmit={handleEditSubmit}>
-        <Form.Group controlId="username">
-          <Form.Label>Username</Form.Label>
-          <InputGroup>
-            <FormControl
-              type="text"
-              value={username}
-              onChange={handleUsernameChange}
-              required
-            />
-            <Button variant="outline-secondary" onClick={handleDuplicateCheck}>
-              Check
-            </Button>
-          </InputGroup>
-          {error && <Alert variant="info">{error}</Alert>}
-        </Form.Group>
-        <Form.Group controlId="password">
-          <Form.Label>New Password</Form.Label>
-          <InputGroup>
-            <FormControl
-              type={isPasswordVisible ? "text" : "password"}
-              value={password}
-              onChange={handlePasswordChange}
-            />
-            <Button
-              variant="outline-secondary"
-              onClick={togglePasswordVisibility}
-            >
-              {isPasswordVisible ? <FaEyeSlash /> : <FaEye />}
-            </Button>
-          </InputGroup>
-        </Form.Group>
-        <Button
-          type="submit"
-          variant="outline-primary"
-          disabled={!isUsernameValid}
-        >
-          Save Changes
-        </Button>
-      </Form>
+      <Row className="justify-content-center mt-5">
+        <Col lg={6}>
+          <Card>
+            <Card.Header>
+              <h1>Edit User Information</h1>
+            </Card.Header>
+            <Card.Body>
+              <Form onSubmit={handleEditSubmit}>
+                <Form.Group controlId="username">
+                  <Form.Label>Username</Form.Label>
+                  <InputGroup>
+                    <FormControl
+                      type="text"
+                      value={username}
+                      onChange={handleUsernameChange}
+                      required
+                    />
+                    <Button
+                      variant="outline-secondary"
+                      onClick={handleDuplicateCheck}
+                    >
+                      Check
+                    </Button>
+                  </InputGroup>
+                  {error && <Alert variant="info">{error}</Alert>}
+                </Form.Group>
+                <Form.Group controlId="password">
+                  <Form.Label>New Password</Form.Label>
+                  <InputGroup>
+                    <FormControl
+                      type={isPasswordVisible ? "text" : "password"}
+                      value={password}
+                      onChange={handlePasswordChange}
+                    />
+                    <Button
+                      variant="outline-secondary"
+                      onClick={togglePasswordVisibility}
+                    >
+                      {isPasswordVisible ? <FaEyeSlash /> : <FaEye />}
+                    </Button>
+                  </InputGroup>
+                </Form.Group>
+                <Button
+                  type="submit"
+                  variant="outline-primary"
+                  disabled={!isUsernameValid}
+                >
+                  Save Changes
+                </Button>
+              </Form>
+            </Card.Body>
+          </Card>
+        </Col>
+      </Row>
     </Container>
   );
 };

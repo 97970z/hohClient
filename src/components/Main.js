@@ -1,15 +1,23 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Header } from "./header/Header";
-import { Container, Table, Alert, Spinner } from "react-bootstrap";
+import { Loding } from "./Loding/Loding";
+import {
+  Container,
+  Alert,
+  Spinner,
+  Row,
+  Col,
+  Card,
+  Badge,
+} from "react-bootstrap";
 
 const Main = () => {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [userData, setUserData] = useState(null);
 
   useEffect(() => {
-    setLoading(true);
     axios
       .get("/api/users")
       .then((res) => {
@@ -26,39 +34,52 @@ const Main = () => {
     ? [...userData].sort((a, b) => b.points - a.points)
     : null;
 
+  if (loading) {
+    return <Loding />;
+  }
+
   return (
-    <Container>
-      <h1 className="mt-3">Main Page</h1>
-      <Header />
-      {error && <Alert variant="danger">{error}</Alert>}
-      {loading && (
-        <div className="d-flex justify-content-center align-items-center">
-          <Spinner animation="border" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </Spinner>
-        </div>
-      )}
-      {sortedUserData && Array.isArray(sortedUserData) && (
-        <Table striped bordered hover responsive className="mt-3">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Points</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedUserData.map((user) => (
-              <tr key={user._id}>
-                <td>{user.name}</td>
-                <td>{user.email}</td>
-                <td>{user.points}</td>
-              </tr>
+    <>
+      <Container className="my-4">
+        <Header />
+        <h1>Leaderboard</h1>
+        {error && <Alert variant="danger">{error}</Alert>}
+        {loading && (
+          <div className="d-flex justify-content-center align-items-center">
+            <Spinner animation="border" role="status">
+              <span className="visually-hidden">Loading...</span>
+            </Spinner>
+          </div>
+        )}
+        {sortedUserData && Array.isArray(sortedUserData) && (
+          <Row>
+            {sortedUserData.map((user, index) => (
+              <Col md={4} key={user._id} className="mb-3">
+                <Card className="h-100">
+                  <Card.Header>
+                    <h4>
+                      {index === 0
+                        ? "🥇"
+                        : index === 1
+                        ? "🥈"
+                        : index === 2
+                        ? "🥉"
+                        : ""}
+                      <Badge className="mx-2">{index + 1}</Badge>
+                      {user.name}
+                    </h4>
+                  </Card.Header>
+                  <Card.Body>
+                    <Card.Title>Email: {user.email}</Card.Title>
+                    <Card.Text>Points: {user.points}</Card.Text>
+                  </Card.Body>
+                </Card>
+              </Col>
             ))}
-          </tbody>
-        </Table>
-      )}
-    </Container>
+          </Row>
+        )}
+      </Container>
+    </>
   );
 };
 

@@ -2,7 +2,9 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import FloatingInput from "./FloatingInput";
 import { Header, AceEditor } from "./header/Header";
+import { Loding } from "./Loding/Loding";
 import {
+  Container,
   Tab,
   Tabs,
   Button,
@@ -11,17 +13,20 @@ import {
   Form,
   FormControl,
   InputGroup,
+  ListGroup,
   Alert,
-  Spinner,
+  Row,
+  Col,
+  Pagination,
 } from "react-bootstrap";
 
 const AssignmentAnswers = () => {
   const isLoggedIn = localStorage.getItem("token");
-  const [loading, setLoading] = useState(false);
+
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [loggedInUser, setLoggedInUser] = useState("");
   const [assignments, setAssignments] = useState([]);
-  const [numAssignments, setNumAssignments] = useState(10);
   const [expandedAssignmentId, setExpandedAssignmentId] = useState(null);
   const [showInput, setShowInput] = useState(false);
   const [stateExpanded, setStateExpanded] = useState(false);
@@ -30,9 +35,10 @@ const AssignmentAnswers = () => {
   const [searchType, setSearchType] = useState("title");
   const [searchTerm, setSearchTerm] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const assignmentsPerPage = 10;
 
   useEffect(() => {
-    setLoading(true);
     const fetchData = async () => {
       try {
         const result = await axios.get("/api/assignments");
@@ -63,8 +69,10 @@ const AssignmentAnswers = () => {
         };
         try {
           const { data } = await axios.get(`/api/auth/me`, config);
+          setLoading(false);
           setLoggedInUser(data._id);
         } catch (err) {
+          setLoading(false);
           console.error(err);
         }
       };
@@ -92,10 +100,6 @@ const AssignmentAnswers = () => {
         setSelectedAnswers(answers);
       }
     }
-  };
-
-  const handleMore = () => {
-    setNumAssignments(numAssignments + 10);
   };
 
   const handleExpired = (date) => {
@@ -165,11 +169,8 @@ const AssignmentAnswers = () => {
       setSelectedAnswers(newAnswers.sort((a, b) => b.accepted - a.accepted));
     } catch (err) {
       console.error(err);
+      alert("There was an issue accepting the answer. Please try again.");
     }
-  };
-
-  const toggleInput = (id) => {
-    setShowInput(!showInput);
   };
 
   const toggleExpanded = () => {
@@ -195,6 +196,14 @@ const AssignmentAnswers = () => {
 
   const handleSearchTypeChange = (event) => {
     setSearchType(event.target.value);
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const pad = (num) => (num < 10 ? "0" + num : num);
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
+      date.getDate()
+    )} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
   };
 
   const filterAssignments = (assignments) => {
@@ -227,86 +236,111 @@ const AssignmentAnswers = () => {
 
   const filteredAssignments = filterAssignments(sortedAssignments);
 
-  return (
-    <div className="container mt-4">
-      <h1 className="mb-4">Assignment Answers</h1>
-      <Header />
-      {error && <Alert variant="danger">{error}</Alert>}
-      {loading && (
-        <div className="d-flex justify-content-center align-items-center">
-          <Spinner animation="border" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </Spinner>
-        </div>
-      )}
-      <div className="d-flex mb-5">
-        <InputGroup className="mr-3">
-          <FormControl
-            placeholder="Search..."
-            value={searchTerm}
-            onChange={handleSearchTermChange}
-          />
-          <Form.Control
-            as="select"
-            value={searchType}
-            onChange={handleSearchTypeChange}
-            style={{ maxWidth: "150px", textAlign: "center" }}
-          >
-            <option value="title">Title</option>
-            <option value="content">Content</option>
-            <option value="title+content">Title + Content</option>
-          </Form.Control>
-        </InputGroup>
-      </div>
+  const indexOfLastAssignment = currentPage * assignmentsPerPage;
+  const indexOfFirstAssignment = indexOfLastAssignment - assignmentsPerPage;
+  const currentAssignments = filteredAssignments.slice(
+    indexOfFirstAssignment,
+    indexOfLastAssignment
+  );
 
-      {/* {sortedAssignments.slice(0, numAssignments).map((assignment) => ( */}
-      {filteredAssignments.slice(0, numAssignments).map((assignment) => (
+  const handlePageClick = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  const renderPaginationItems = () => {
+    const totalPages = Math.ceil(
+      filteredAssignments.length / assignmentsPerPage
+    );
+
+    let items = [];
+    for (let i = 1; i <= totalPages; i++) {
+      items.push(
+        <Pagination.Item
+          key={i}
+          active={i === currentPage}
+          onClick={() => handlePageClick(i)}
+        >
+          {i}
+        </Pagination.Item>
+      );
+    }
+    return items;
+  };
+
+  if (loading) {
+    return <Loding />;
+  }
+
+  return (
+    <Container className="my-4">
+      <Header />
+      <h1 className="text-center mb-4">Assignment Answers</h1>
+      {error && <Alert variant="danger">{error}</Alert>}
+      {loading && <Loding />}
+      <Row>
+        <Col md={{ span: 8, offset: 2 }}>
+          <InputGroup className="mb-4">
+            <FormControl
+              placeholder="Search..."
+              value={searchTerm}
+              onChange={handleSearchTermChange}
+            />
+            <Form.Control
+              as="select"
+              value={searchType}
+              onChange={handleSearchTypeChange}
+              style={{ maxWidth: "150px", textAlign: "center" }}
+            >
+              <option value="title">Title</option>
+              <option value="content">Content</option>
+              <option value="title+content">Title + Content</option>
+            </Form.Control>
+          </InputGroup>
+        </Col>
+      </Row>
+
+      {/* {filteredAssignments.slice(0, numAssignments).map((assignment) => ( */}
+      {currentAssignments.map((assignment) => (
         <Card key={assignment._id} className="mb-4 shadow">
           {expandedAssignmentId === assignment._id && isLoggedIn && (
-            <>
-              <div className="d-flex my-3">
-                {assignment.author === loggedInUser ? (
-                  <Button
-                    variant="outline-danger"
-                    className="mr-2"
-                    onClick={handleShow}
-                  >
-                    Delete
-                  </Button>
-                ) : null}
-                <Button variant="outline-primary" onClick={toggleInput}>
-                  Register
+            <Modal show={show} onHide={handleClose}>
+              <Modal.Header closeButton>
+                <Modal.Title>Delete Assignment</Modal.Title>
+              </Modal.Header>
+              <Modal.Body>
+                과제를 삭제하시겠습니까? 삭제하면 되돌릴 수 없습니다.
+              </Modal.Body>
+              <Modal.Footer>
+                <Button variant="secondary" onClick={handleClose}>
+                  Close
                 </Button>
-              </div>
-              <Modal show={show} onHide={handleClose}>
-                <Modal.Header closeButton>
-                  <Modal.Title>Delete Assignment</Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                  과제를 삭제하시겠습니까? 삭제하면 되돌릴 수 없습니다.
-                </Modal.Body>
-                <Modal.Footer>
-                  <Button variant="secondary" onClick={handleClose}>
-                    Close
-                  </Button>
-                  <Button variant="primary" onClick={handleDelete}>
-                    Delete
-                  </Button>
-                </Modal.Footer>
-              </Modal>
-            </>
+                <Button variant="primary" onClick={handleDelete}>
+                  Delete
+                </Button>
+              </Modal.Footer>
+            </Modal>
           )}
           <Card.Body>
             <Card.Title
               className="d-flex justify-content-between align-items-center"
               onClick={() => handleExpandClick(assignment._id)}
             >
-              <span>
-                만료일 : {handleExpired(assignment.expiration)} •{" "}
-                {assignment.title}
-              </span>
-              <small className="text-muted">장르 : {assignment.genre}</small>
+              <span>{assignment.title}</span>
+
+              <small className="text-muted">
+                {assignment.genre === "writing"
+                  ? "other than coding"
+                  : assignment.genre}{" "}
+              </small>
             </Card.Title>
+            <div className="d-flex justify-content-between align-items-center">
+              <p className="card-subtitle mb-2">
+                작성일: {formatDate(assignment.createdAt)}
+              </p>
+              <p className="card-subtitle mb-2">
+                만료일: {formatDate(assignment.expiration)}
+              </p>
+            </div>
             {expandedAssignmentId === assignment._id && (
               <>
                 <p className="card-subtitle">Points: {assignment.points}</p>
@@ -328,6 +362,16 @@ const AssignmentAnswers = () => {
                     style={{ width: "100%", height: "200px" }}
                   />
                 </div>
+                {assignment.author === loggedInUser ? (
+                  <Button
+                    variant="danger"
+                    size="sm"
+                    className="py-0"
+                    onClick={handleShow}
+                  >
+                    Delete
+                  </Button>
+                ) : null}
                 <hr></hr>
                 <Tabs
                   defaultActiveKey="gptAnswer"
@@ -359,51 +403,69 @@ const AssignmentAnswers = () => {
                         assignmentId={assignment._id}
                         selectedAnswers={selectedAnswers}
                         setSelectedAnswers={setSelectedAnswers}
+                        showInput={showInput}
+                        setShowInput={setShowInput}
                       />
                     )}
-                    {selectedAnswers.map((answer) => (
-                      <div key={`${answer.content}-${answer._id}`}>
-                        <hr></hr>
-                        <h5>{answer.accepted ? "Best Answer - " : ""}</h5>
-                        <AceEditor
-                          mode={
-                            assignment.genre === "writing"
-                              ? "text"
-                              : assignment.genre
-                          }
-                          theme="solarized_light"
-                          value={answer.content}
-                          setOptions={{
-                            useWorker: false,
-                            readOnly: true,
-                          }}
-                          style={{ width: "100%", height: "150px" }}
-                        />
-                        {answer.author === loggedInUser ? (
-                          <>
-                            <Button
-                              variant="outline-danger"
-                              className="mr-2"
-                              onClick={() => handleDeleteAnswer(answer)}
-                            >
-                              Delete
-                            </Button>
-                          </>
-                        ) : null}
-                        {expandedAssignmentId &&
-                        isLoggedIn &&
-                        assignments.find((a) => a._id === expandedAssignmentId)
-                          .author === loggedInUser ? (
-                          <Button
-                            variant="outline-primary"
-                            className="mr-2"
-                            onClick={() => handleAcceptAnswer(answer._id)}
-                          >
-                            Accept
-                          </Button>
-                        ) : null}
-                      </div>
-                    ))}
+                    <ListGroup variant="flush">
+                      {selectedAnswers.map((answer) => (
+                        <ListGroup.Item key={`${answer.content}-${answer._id}`}>
+                          <hr></hr>
+                          <h5>{answer.accepted ? "Best Answer - " : ""}</h5>
+                          <small className="text-muted">
+                            작성일: {formatDate(answer.createdAt)}
+                          </small>
+                          <AceEditor
+                            mode={
+                              assignment.genre === "writing"
+                                ? "text"
+                                : assignment.genre
+                            }
+                            theme="solarized_light"
+                            value={answer.content}
+                            setOptions={{
+                              useWorker: false,
+                              readOnly: true,
+                            }}
+                            style={{ width: "100%", height: "150px" }}
+                          />
+                          <div className="mt-2">
+                            {answer.author === loggedInUser ? (
+                              <>
+                                <Button
+                                  variant="outline-danger"
+                                  className="mr-2"
+                                  onClick={() => handleDeleteAnswer(answer)}
+                                >
+                                  Delete
+                                </Button>
+                              </>
+                            ) : null}
+                            {expandedAssignmentId &&
+                            isLoggedIn &&
+                            assignments.find(
+                              (a) => a._id === expandedAssignmentId
+                            ).author === loggedInUser ? (
+                              <Button
+                                variant="outline-primary"
+                                className="mr-2"
+                                onClick={() => handleAcceptAnswer(answer._id)}
+                              >
+                                Accept
+                              </Button>
+                            ) : null}
+                          </div>
+                        </ListGroup.Item>
+                      ))}
+                    </ListGroup>
+                    <Card.Footer className="text-right">
+                      <Button
+                        variant="primary"
+                        onClick={() => setShowInput(true)}
+                      >
+                        Submit Answer
+                      </Button>
+                    </Card.Footer>
                   </Tab>
                 </Tabs>
               </>
@@ -411,13 +473,12 @@ const AssignmentAnswers = () => {
           </Card.Body>
         </Card>
       ))}
-
-      {numAssignments < assignments.length && (
-        <button className="btn btn-primary" onClick={handleMore}>
-          More
-        </button>
-      )}
-    </div>
+      <Row className="mt-4">
+        <Col className="text-center">
+          <Pagination>{renderPaginationItems()}</Pagination>
+        </Col>
+      </Row>
+    </Container>
   );
 };
 
