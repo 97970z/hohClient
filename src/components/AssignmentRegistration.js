@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { Header, AceEditor } from "./header/Header";
+import { checkTokenExpiration } from "./refreshToken/refresh";
 import { Loding } from "./Loding/Loding";
 import {
   Container,
@@ -15,6 +16,14 @@ import {
 
 const AssignmentRegistration = () => {
   const navigate = useNavigate();
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const date = String(now.getDate()).padStart(2, "0");
+  const hour = String(now.getHours()).padStart(2, "0");
+  const minute = String(now.getMinutes()).padStart(2, "0");
+  const nowDate = `${year}-${month}-${date}T${hour}:${minute}`;
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [title, setTitle] = useState("");
@@ -26,26 +35,29 @@ const AssignmentRegistration = () => {
   const [language, setLanguage] = useState("javascript");
   const [isLoading, setIsLoading] = useState(false);
 
-  const now = new Date();
-  const nowISOString = now.toISOString().substring(0, 19);
-
   useEffect(() => {
     const fetchAuthor = async () => {
-      const token = localStorage.getItem("token");
-      const config = {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `${token}`,
-        },
-      };
-      try {
-        const { data } = await axios.get(`/api/auth/me`, config);
+      const isTokenRefreshed = await checkTokenExpiration();
+
+      if (isTokenRefreshed) {
+        const token = localStorage.getItem("token");
+        const config = {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `${token}`,
+          },
+        };
+        try {
+          const { data } = await axios.get(`/api/auth/me`, config);
+          setLoading(false);
+          setAuthor(data._id);
+        } catch (err) {
+          setLoading(false);
+          setError(err);
+          console.error(err);
+        }
+      } else {
         setLoading(false);
-        setAuthor(data._id);
-      } catch (err) {
-        setLoading(false);
-        setError(err);
-        console.error(err);
       }
     };
     fetchAuthor();
@@ -72,7 +84,6 @@ const AssignmentRegistration = () => {
           },
         })
         .then((response) => {
-          console.log(response.data.choices[0].message.content);
           return response.data.choices[0].message.content;
         })
         .catch((err) => {
@@ -127,8 +138,7 @@ const AssignmentRegistration = () => {
               {error && <Alert variant="danger">{error}</Alert>}
               {isLoading ? (
                 <>
-                  <h4>chatGPT에게 질문하는 중입니다.</h4>
-                  <Loding />
+                  <h4>ChatGPT에게 질문하는 중입니다.</h4>
                 </>
               ) : (
                 <Form onSubmit={onSubmit}>
@@ -136,6 +146,8 @@ const AssignmentRegistration = () => {
                     <Form.Label>Title</Form.Label>
                     <Form.Control
                       type="text"
+                      minLength="5"
+                      maxLength="50"
                       value={title}
                       placeholder="제목을 입력하세요."
                       onChange={(e) => setTitle(e.target.value)}
@@ -184,7 +196,7 @@ const AssignmentRegistration = () => {
                     <Form.Label>Expiration</Form.Label>
                     <Form.Control
                       type="datetime-local"
-                      min={nowISOString}
+                      min={nowDate}
                       value={expiration}
                       onChange={(e) => setExpiration(e.target.value)}
                       required
@@ -211,14 +223,13 @@ const AssignmentRegistration = () => {
                     <Form.Control
                       type="number"
                       value={points}
-                      minLength="1"
-                      maxLength="5"
+                      min="1"
+                      max="5"
                       placeholder="해결포인트를 입력하세요. (1~5)"
                       onChange={(e) => setPoints(e.target.value)}
                       required
                     />
                   </Form.Group>
-
                   <Button
                     variant="outline-primary"
                     className="mr-2"

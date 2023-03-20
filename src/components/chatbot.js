@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import axios from "axios";
-import { Header } from "./header/Header";
 import {
   Container,
   Form,
@@ -12,7 +11,7 @@ import {
 
 const api_key = process.env.REACT_APP_OPENAI;
 
-const OpenAIChatbot = () => {
+const Chatbot = () => {
   const [history, setHistory] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
   const [conversation, setConversation] = useState([]);
@@ -58,7 +57,6 @@ const OpenAIChatbot = () => {
 
   return (
     <Container className="my-4">
-      <Header />
       <h1>ChatGPT bot</h1>
       <Card className="mb-4" style={{ minHeight: "400px" }}>
         <ListGroup variant="flush">
@@ -93,4 +91,4 @@ const OpenAIChatbot = () => {
   );
 };
 
-export default OpenAIChatbot;
+export default Chatbot;

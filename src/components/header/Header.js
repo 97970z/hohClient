@@ -33,7 +33,12 @@ const Header = () => {
         {
           label: "Logout",
           path: "/login",
-          onClick: () => localStorage.removeItem("token"),
+          onClick: () => {
+            localStorage.removeItem("token");
+            localStorage.removeItem("refreshtoken");
+            localStorage.removeItem("accessTokenExp");
+            localStorage.removeItem("refreshTokenExp");
+          },
         },
       ]
     : [
@@ -52,9 +57,6 @@ const Header = () => {
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="mr-auto">
-            <Nav.Link onClick={() => handleNavigation("/chatbot")}>
-              ChatGPT bot
-            </Nav.Link>
             <Nav.Link onClick={() => handleNavigation("/assignment-answers")}>
               Assignment Answers
             </Nav.Link>

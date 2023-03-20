@@ -2,6 +2,7 @@ import axios from "axios";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header } from "./header/Header";
+import { checkTokenExpiration } from "./refreshToken/refresh";
 import { Loding } from "./Loding/Loding";
 import {
   Container,
@@ -23,30 +24,34 @@ const MyInfo = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const config = {
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `${token}`,
-      },
-    };
-    axios
-      .get("/api/auth/me", config)
-      .then((res) => {
-        setLoading(false);
+    const fetchUserData = async () => {
+      try {
+        await checkTokenExpiration();
+        const token = localStorage.getItem("token");
+        const config = {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `${token}`,
+          },
+        };
+        const res = await axios.get("/api/auth/me", config);
         setUser(res.data);
-      })
-      .catch((err) => {
         setLoading(false);
+      } catch (err) {
         setError(err);
+        setLoading(false);
         console.error(err);
-      });
+      }
+    };
+
+    fetchUserData();
   }, []);
 
   useEffect(() => {
     if (user) {
       fetchAssignments();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   const fetchAssignments = async () => {
@@ -57,22 +62,26 @@ const MyInfo = () => {
       });
       setAssignments(filteredAssignments);
 
-      const answers = [];
-      for (let i = 0; i < filteredAssignments.length; i++) {
-        const res = await axios.get(
-          `/api/assignments/${filteredAssignments[i]._id}/answers`
-        );
-        answers.push(res.data);
-      }
+      const answerPromises = filteredAssignments.map((assignment) => {
+        return axios.get(`/api/assignments/${assignment._id}/answers`);
+      });
+
+      const answerResponses = await Promise.all(answerPromises);
+      const answers = answerResponses.map((res) => res.data);
       setAssignmentAnswers(answers);
       setLoading(false);
     } catch (err) {
+      setLoading(false);
       console.error(err);
     }
   };
 
+  function truncateString(str, maxLength) {
+    return str.length > maxLength ? str.slice(0, maxLength) + "..." : str;
+  }
+
   if (loading) {
-    return <Loding />;
+    <Loding />;
   }
 
   return (
@@ -112,14 +121,21 @@ const MyInfo = () => {
                   <Card key={assignment._id} className="mb-3">
                     <Card.Header>
                       <strong>Assignment {index + 1}</strong>{" "}
-                      <Badge variant="secondary">{assignment.title}</Badge>
+                      <Badge variant="secondary">
+                        {truncateString(assignment.title, 30)}
+                      </Badge>
                     </Card.Header>
                     <Card.Body>
                       {assignmentAnswers[index] && (
                         <ListGroup>
+                          {assignmentAnswers[index].length === 0 && (
+                            <ListGroup.Item>
+                              아직 해당 질문에 대한 답변이 없습니다.
+                            </ListGroup.Item>
+                          )}
                           {assignmentAnswers[index].map((answer) => (
                             <ListGroup.Item key={answer._id}>
-                              {answer.content}
+                              {truncateString(answer.content, 100)}
                             </ListGroup.Item>
                           ))}
                         </ListGroup>

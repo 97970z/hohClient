@@ -6,9 +6,10 @@ import MainPage from "./components/Main";
 import MyinfoPage from "./components/Myinfo";
 import AssignmentRegistrationPage from "./components/AssignmentRegistration";
 import AssignmentAnswersPage from "./components/AssignmentAnswers";
-import OpenAIChatbot from "./components/chatbot";
 
 const App = () => {
+  const token = localStorage.getItem("token");
+
   return (
     <Router>
       <Routes>
@@ -16,14 +17,16 @@ const App = () => {
         <Route path="/main" element={<MainPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<SignupPage />} />
-        <Route path="/my-info" element={<MyinfoPage />} />
+        <Route
+          path="/my-info"
+          element={token ? <MyinfoPage /> : <LoginPage />}
+        />
         <Route path="/edit-info" element={<EditInfoPage />} />
         <Route
           path="/assignment-registration"
-          element={<AssignmentRegistrationPage />}
+          element={token ? <AssignmentRegistrationPage /> : <LoginPage />}
         />
         <Route path="/assignment-answers" element={<AssignmentAnswersPage />} />
-        <Route path="/chatbot" element={<OpenAIChatbot />} />
       </Routes>
     </Router>
   );

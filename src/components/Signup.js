@@ -48,10 +48,13 @@ const Signup = () => {
         confirmPassword,
       });
       localStorage.setItem("token", res.data.token);
+      localStorage.setItem("refreshtoken", res.data.refreshToken);
+      localStorage.setItem("accessTokenExp", res.data.accessTokenExp);
+      localStorage.setItem("refreshTokenExp", res.data.refreshTokenExp);
       setLoading(false);
       navigate("/main");
     } catch (err) {
-      handleErrors(err);
+      console.log(err);
       setLoading(false);
     }
   };
@@ -63,24 +66,23 @@ const Signup = () => {
   const isInputValid = () => {
     if (!name || !email || !password || !confirmPassword) {
       setError("All fields are required.");
+      setLoading(true);
       return false;
     }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
+      setLoading(true);
       return false;
     }
 
     if (password.length < 6) {
       setError("Password should be at least 6 characters long.");
+      setLoading(true);
       return false;
     }
 
     return true;
-  };
-
-  const handleErrors = (err) => {
-    setError(err.response.data.msg);
   };
 
   return (

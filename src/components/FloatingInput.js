@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { AceEditor } from "./header/Header";
+import { checkTokenExpiration } from "./refreshToken/refresh";
 import { Button, Form, Card, Modal } from "react-bootstrap";
 
 const FloatingInput = ({
@@ -16,18 +17,22 @@ const FloatingInput = ({
 
   useEffect(() => {
     const fetchAuthor = async () => {
-      const token = localStorage.getItem("token");
-      const config = {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `${token}`,
-        },
-      };
-      try {
-        const res = await axios.get("/api/auth/me", config);
-        setAuthor(res.data._id);
-      } catch (err) {
-        console.error(err);
+      const isTokenRefreshed = await checkTokenExpiration();
+
+      if (isTokenRefreshed) {
+        const token = localStorage.getItem("token");
+        const config = {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `${token}`,
+          },
+        };
+        try {
+          const res = await axios.get("/api/auth/me", config);
+          setAuthor(res.data._id);
+        } catch (err) {
+          console.error(err);
+        }
       }
     };
     fetchAuthor();

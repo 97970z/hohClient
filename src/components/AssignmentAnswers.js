@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import FloatingInput from "./FloatingInput";
 import { Header, AceEditor } from "./header/Header";
+import { checkTokenExpiration } from "./refreshToken/refresh";
 import { Loding } from "./Loding/Loding";
 import {
   Container,
@@ -60,20 +61,24 @@ const AssignmentAnswers = () => {
   useEffect(() => {
     if (isAuthenticated) {
       const fetchLoggedInUser = async () => {
-        const token = localStorage.getItem("token");
-        const config = {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `${token}`,
-          },
-        };
-        try {
-          const { data } = await axios.get(`/api/auth/me`, config);
-          setLoading(false);
-          setLoggedInUser(data._id);
-        } catch (err) {
-          setLoading(false);
-          console.error(err);
+        const isTokenRefreshed = await checkTokenExpiration();
+
+        if (isTokenRefreshed) {
+          const token = localStorage.getItem("token");
+          const config = {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `${token}`,
+            },
+          };
+          try {
+            const { data } = await axios.get(`/api/auth/me`, config);
+            setLoading(false);
+            setLoggedInUser(data._id);
+          } catch (err) {
+            setLoading(false);
+            console.error(err);
+          }
         }
       };
       fetchLoggedInUser();
@@ -268,7 +273,7 @@ const AssignmentAnswers = () => {
   };
 
   if (loading) {
-    return <Loding />;
+    <Loding />;
   }
 
   return (
@@ -299,7 +304,6 @@ const AssignmentAnswers = () => {
         </Col>
       </Row>
 
-      {/* {filteredAssignments.slice(0, numAssignments).map((assignment) => ( */}
       {currentAssignments.map((assignment) => (
         <Card key={assignment._id} className="mb-4 shadow">
           {expandedAssignmentId === assignment._id && isLoggedIn && (
@@ -321,25 +325,24 @@ const AssignmentAnswers = () => {
             </Modal>
           )}
           <Card.Body>
-            <Card.Title
-              className="d-flex justify-content-between align-items-center"
-              onClick={() => handleExpandClick(assignment._id)}
-            >
-              <span>{assignment.title}</span>
+            <div onClick={() => handleExpandClick(assignment._id)}>
+              <Card.Title className="d-flex justify-content-between align-items-center">
+                <span>{assignment.title}</span>
 
-              <small className="text-muted">
-                {assignment.genre === "writing"
-                  ? "other than coding"
-                  : assignment.genre}{" "}
-              </small>
-            </Card.Title>
-            <div className="d-flex justify-content-between align-items-center">
-              <p className="card-subtitle mb-2">
-                작성일: {formatDate(assignment.createdAt)}
-              </p>
-              <p className="card-subtitle mb-2">
-                만료일: {formatDate(assignment.expiration)}
-              </p>
+                <small className="text-muted">
+                  {assignment.genre === "writing"
+                    ? "other than coding"
+                    : assignment.genre}{" "}
+                </small>
+              </Card.Title>
+              <div className="d-flex justify-content-between align-items-center">
+                <p className="card-subtitle mb-2">
+                  작성일: {formatDate(assignment.createdAt)}
+                </p>
+                <p className="card-subtitle mb-2">
+                  만료일: {formatDate(assignment.expiration)}
+                </p>
+              </div>
             </div>
             {expandedAssignmentId === assignment._id && (
               <>
@@ -394,6 +397,7 @@ const AssignmentAnswers = () => {
                         }}
                         style={{ width: "100%", height: "150px" }}
                       />
+                      {/* <Chatbot /> */}
                     </div>
                   </Tab>
                   <Tab eventKey="userAnswer" title="User's Answer">
@@ -408,55 +412,70 @@ const AssignmentAnswers = () => {
                       />
                     )}
                     <ListGroup variant="flush">
-                      {selectedAnswers.map((answer) => (
-                        <ListGroup.Item key={`${answer.content}-${answer._id}`}>
-                          <hr></hr>
-                          <h5>{answer.accepted ? "Best Answer - " : ""}</h5>
-                          <small className="text-muted">
-                            작성일: {formatDate(answer.createdAt)}
-                          </small>
-                          <AceEditor
-                            mode={
-                              assignment.genre === "writing"
-                                ? "text"
-                                : assignment.genre
-                            }
-                            theme="solarized_light"
-                            value={answer.content}
-                            setOptions={{
-                              useWorker: false,
-                              readOnly: true,
-                            }}
-                            style={{ width: "100%", height: "150px" }}
-                          />
-                          <div className="mt-2">
-                            {answer.author === loggedInUser ? (
-                              <>
+                      {selectedAnswers
+                        .sort((a, b) =>
+                          a.accepted === b.accepted ? 0 : a.accepted ? -1 : 1
+                        )
+                        .map((answer) => (
+                          <ListGroup.Item
+                            key={`${answer.content}-${answer._id}`}
+                            className="border rounded mb-3"
+                          >
+                            <div className="d-flex justify-content-between align-items-center">
+                              {answer.accepted && (
+                                <span className="badge rounded-pill bg-success text-white">
+                                  Best Answer
+                                </span>
+                              )}
+                              <small className="text-muted">
+                                작성일: {formatDate(answer.createdAt)}
+                              </small>
+                            </div>
+                            <div className="mt-2 mb-3">
+                              <AceEditor
+                                mode={
+                                  assignment.genre === "writing"
+                                    ? "text"
+                                    : assignment.genre
+                                }
+                                theme="solarized_light"
+                                value={answer.content}
+                                setOptions={{
+                                  useWorker: false,
+                                  readOnly: true,
+                                }}
+                                style={{ width: "100%", height: "150px" }}
+                              />
+                            </div>
+                            <div className="d-flex justify-content-end">
+                              {answer.author === loggedInUser ? (
+                                <>
+                                  <Button
+                                    variant="outline-danger"
+                                    className="mr-2"
+                                    onClick={() => handleDeleteAnswer(answer)}
+                                  >
+                                    Delete
+                                  </Button>
+                                </>
+                              ) : null}
+                              {expandedAssignmentId &&
+                              isLoggedIn &&
+                              assignments.find(
+                                (a) => a._id === expandedAssignmentId
+                              ).author === loggedInUser &&
+                              !answer.accepted ? (
                                 <Button
-                                  variant="outline-danger"
+                                  variant="outline-primary"
                                   className="mr-2"
-                                  onClick={() => handleDeleteAnswer(answer)}
+                                  onClick={() => handleAcceptAnswer(answer._id)}
                                 >
-                                  Delete
+                                  Accept
                                 </Button>
-                              </>
-                            ) : null}
-                            {expandedAssignmentId &&
-                            isLoggedIn &&
-                            assignments.find(
-                              (a) => a._id === expandedAssignmentId
-                            ).author === loggedInUser ? (
-                              <Button
-                                variant="outline-primary"
-                                className="mr-2"
-                                onClick={() => handleAcceptAnswer(answer._id)}
-                              >
-                                Accept
-                              </Button>
-                            ) : null}
-                          </div>
-                        </ListGroup.Item>
-                      ))}
+                              ) : null}
+                            </div>
+                          </ListGroup.Item>
+                        ))}
                     </ListGroup>
                     <Card.Footer className="text-right">
                       <Button

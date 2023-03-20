@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Header } from "./header/Header";
+import { checkTokenExpiration } from "./refreshToken/refresh";
 import { Loding } from "./Loding/Loding";
 import {
   Container,
@@ -18,16 +19,19 @@ const Main = () => {
   const [userData, setUserData] = useState(null);
 
   useEffect(() => {
-    axios
-      .get("/api/users")
-      .then((res) => {
+    const fetchUsers = async () => {
+      try {
+        await checkTokenExpiration();
+        const res = await axios.get("/api/users");
         setLoading(false);
         setUserData(res.data.users);
-      })
-      .catch((err) => {
+      } catch (err) {
         setLoading(false);
         setError(err);
-      });
+      }
+    };
+
+    fetchUsers();
   }, []);
 
   const sortedUserData = userData
@@ -35,7 +39,7 @@ const Main = () => {
     : null;
 
   if (loading) {
-    return <Loding />;
+    <Loding />;
   }
 
   return (
@@ -51,7 +55,7 @@ const Main = () => {
             </Spinner>
           </div>
         )}
-        {sortedUserData && Array.isArray(sortedUserData) && (
+        {sortedUserData && (
           <Row>
             {sortedUserData.map((user, index) => (
               <Col md={4} key={user._id} className="mb-3">

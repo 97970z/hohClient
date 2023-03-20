@@ -33,6 +33,9 @@ const Login = () => {
     try {
       const res = await axios.post("/api/auth/login", formData);
       localStorage.setItem("token", res.data.token);
+      localStorage.setItem("refreshtoken", res.data.refreshToken);
+      localStorage.setItem("accessTokenExp", res.data.accessTokenExp);
+      localStorage.setItem("refreshTokenExp", res.data.refreshTokenExp);
       setLoading(false);
       navigate("/main");
     } catch (err) {

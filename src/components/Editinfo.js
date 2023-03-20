@@ -27,23 +27,8 @@ const EditInfo = () => {
   const user = location.state.user;
 
   useEffect(() => {
-    const getUserInfo = async () => {
-      try {
-        const token = localStorage.getItem("token");
-        const config = {
-          headers: {
-            Authorization: `${token}`,
-          },
-        };
-        const res = await axios.get("/api/auth/me", config);
-        setUsername(res.data.name);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    getUserInfo();
-  }, []);
+    setUsername(user.name);
+  }, [user]);
 
   const handleUsernameChange = (e) => {
     setUsername(e.target.value);
