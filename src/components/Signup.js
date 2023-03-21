@@ -6,6 +6,7 @@ import {
   Row,
   Col,
   Card,
+  InputGroup,
   Form,
   Button,
   Alert,
@@ -23,6 +24,7 @@ const Signup = () => {
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [emailChecked, setEmailChecked] = useState(false);
 
   const navigate = useNavigate();
 
@@ -30,6 +32,20 @@ const Signup = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleEmailCheck = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.post("/api/auth/check-email", { email });
+      setEmailChecked(res.data.message === "Email is available");
+      setLoading(false);
+      setError(res.data.message);
+    } catch (err) {
+      console.log(err);
+      setLoading(false);
+      setError("Error checking email.");
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -52,7 +68,7 @@ const Signup = () => {
       localStorage.setItem("accessTokenExp", res.data.accessTokenExp);
       localStorage.setItem("refreshTokenExp", res.data.refreshTokenExp);
       setLoading(false);
-      navigate("/main");
+      navigate("/email-sent");
     } catch (err) {
       console.log(err);
       setLoading(false);
@@ -66,19 +82,25 @@ const Signup = () => {
   const isInputValid = () => {
     if (!name || !email || !password || !confirmPassword) {
       setError("All fields are required.");
-      setLoading(true);
+      setLoading(false);
+      return false;
+    }
+
+    if (name.length < 4 || name.length > 12) {
+      setError("Name must be between 4 and 12 characters long.");
+      setLoading(false);
       return false;
     }
 
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
-      setLoading(true);
+      setLoading(false);
       return false;
     }
 
-    if (password.length < 6) {
-      setError("Password should be at least 6 characters long.");
-      setLoading(true);
+    if (password.length < 8) {
+      setError("Password should be at least 8 characters long.");
+      setLoading(false);
       return false;
     }
 
@@ -109,13 +131,29 @@ const Signup = () => {
                 </Form.Group>
                 <Form.Group controlId="email">
                   <Form.Label>Email</Form.Label>
-                  <Form.Control
-                    type="email"
-                    name="email"
-                    value={email}
-                    onChange={handleChange}
-                    required
-                  />
+                  <InputGroup>
+                    <Form.Control
+                      type="email"
+                      name="email"
+                      value={email}
+                      onChange={handleChange}
+                      required
+                    />
+                    <Button
+                      variant="outline-info"
+                      onClick={handleEmailCheck}
+                      disabled={loading || !email}
+                      style={{ marginLeft: "10px" }}
+                    >
+                      {loading ? (
+                        <Spinner animation="border" size="sm" role="status">
+                          <span className="visually-hidden">Checking...</span>
+                        </Spinner>
+                      ) : (
+                        "Check Email"
+                      )}
+                    </Button>
+                  </InputGroup>
                 </Form.Group>
                 <Form.Group controlId="password">
                   <Form.Label>Password</Form.Label>
@@ -124,7 +162,6 @@ const Signup = () => {
                     name="password"
                     value={password}
                     onChange={handleChange}
-                    minLength="6"
                     required
                   />
                 </Form.Group>
@@ -135,14 +172,13 @@ const Signup = () => {
                     name="confirmPassword"
                     value={confirmPassword}
                     onChange={handleChange}
-                    minLength="6"
                     required
                   />
                 </Form.Group>
                 <Button
                   type="submit"
                   variant="outline-primary"
-                  disabled={loading}
+                  disabled={loading || !emailChecked}
                 >
                   {loading ? (
                     <Spinner animation="border" size="sm" role="status">

@@ -48,7 +48,7 @@ const EditInfo = () => {
   const handleDuplicateCheck = async (event) => {
     event.preventDefault();
     try {
-      const res = await axios.get(`/api/users/duplicate-check/${username}`);
+      const res = await axios.get(`/api/auth/check-name/${username}`);
       setIsUsernameValid(res.data.message === "Username is available");
       setError(res.data.message);
     } catch (err) {

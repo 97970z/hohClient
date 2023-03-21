@@ -139,6 +139,7 @@ const AssignmentRegistration = () => {
               {isLoading ? (
                 <>
                   <h4>ChatGPT에게 질문하는 중입니다.</h4>
+                  <Loding />
                 </>
               ) : (
                 <Form onSubmit={onSubmit}>

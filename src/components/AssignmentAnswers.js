@@ -248,28 +248,10 @@ const AssignmentAnswers = () => {
     indexOfLastAssignment
   );
 
+  const totalPages = Math.ceil(filteredAssignments.length / assignmentsPerPage);
+
   const handlePageClick = (pageNumber) => {
     setCurrentPage(pageNumber);
-  };
-
-  const renderPaginationItems = () => {
-    const totalPages = Math.ceil(
-      filteredAssignments.length / assignmentsPerPage
-    );
-
-    let items = [];
-    for (let i = 1; i <= totalPages; i++) {
-      items.push(
-        <Pagination.Item
-          key={i}
-          active={i === currentPage}
-          onClick={() => handlePageClick(i)}
-        >
-          {i}
-        </Pagination.Item>
-      );
-    }
-    return items;
   };
 
   if (loading) {
@@ -494,7 +476,31 @@ const AssignmentAnswers = () => {
       ))}
       <Row className="mt-4">
         <Col className="text-center">
-          <Pagination>{renderPaginationItems()}</Pagination>
+          <Pagination>
+            <Pagination.First onClick={() => handlePageClick(1)} />
+            <Pagination.Prev
+              onClick={() =>
+                handlePageClick(currentPage > 1 ? currentPage - 1 : 1)
+              }
+            />
+            {[...Array(totalPages)].map((_, index) => (
+              <Pagination.Item
+                key={index + 1}
+                active={index + 1 === currentPage}
+                onClick={() => handlePageClick(index + 1)}
+              >
+                {index + 1}
+              </Pagination.Item>
+            ))}
+            <Pagination.Next
+              onClick={() =>
+                handlePageClick(
+                  currentPage < totalPages ? currentPage + 1 : totalPages
+                )
+              }
+            />
+            <Pagination.Last onClick={() => handlePageClick(totalPages)} />
+          </Pagination>
         </Col>
       </Row>
     </Container>

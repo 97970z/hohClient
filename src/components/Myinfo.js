@@ -13,6 +13,7 @@ import {
   Alert,
   ListGroup,
   Badge,
+  Pagination,
 } from "react-bootstrap";
 
 const MyInfo = () => {
@@ -21,6 +22,8 @@ const MyInfo = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [user, setUser] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const assignmentsPerPage = 5;
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -57,9 +60,13 @@ const MyInfo = () => {
   const fetchAssignments = async () => {
     try {
       const res = await axios.get("/api/assignments");
-      const filteredAssignments = res.data.filter((assignment) => {
-        return assignment.author === user._id;
-      });
+      const filteredAssignments = res.data
+        .filter((assignment) => {
+          return assignment.author === user._id;
+        })
+        .sort((a, b) => {
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        });
       setAssignments(filteredAssignments);
 
       const answerPromises = filteredAssignments.map((assignment) => {
@@ -79,6 +86,19 @@ const MyInfo = () => {
   function truncateString(str, maxLength) {
     return str.length > maxLength ? str.slice(0, maxLength) + "..." : str;
   }
+
+  const indexOfLastAssignment = currentPage * assignmentsPerPage;
+  const indexOfFirstAssignment = indexOfLastAssignment - assignmentsPerPage;
+  const currentAssignments = assignments.slice(
+    indexOfFirstAssignment,
+    indexOfLastAssignment
+  );
+
+  const totalPages = Math.ceil(assignments.length / assignmentsPerPage);
+
+  const handlePageClick = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   if (loading) {
     <Loding />;
@@ -117,7 +137,7 @@ const MyInfo = () => {
               </Col>
               <Col md={8}>
                 <h2>My Assignments</h2>
-                {assignments.map((assignment, index) => (
+                {currentAssignments.map((assignment, index) => (
                   <Card key={assignment._id} className="mb-3">
                     <Card.Header>
                       <strong>Assignment {index + 1}</strong>{" "}
@@ -143,6 +163,33 @@ const MyInfo = () => {
                     </Card.Body>
                   </Card>
                 ))}
+                <Pagination>
+                  <Pagination.First onClick={() => handlePageClick(1)} />
+                  <Pagination.Prev
+                    onClick={() =>
+                      handlePageClick(currentPage > 1 ? currentPage - 1 : 1)
+                    }
+                  />
+                  {[...Array(totalPages)].map((_, index) => (
+                    <Pagination.Item
+                      key={index + 1}
+                      active={index + 1 === currentPage}
+                      onClick={() => handlePageClick(index + 1)}
+                    >
+                      {index + 1}
+                    </Pagination.Item>
+                  ))}
+                  <Pagination.Next
+                    onClick={() =>
+                      handlePageClick(
+                        currentPage < totalPages ? currentPage + 1 : totalPages
+                      )
+                    }
+                  />
+                  <Pagination.Last
+                    onClick={() => handlePageClick(totalPages)}
+                  />
+                </Pagination>
               </Col>
             </Row>
           </>
