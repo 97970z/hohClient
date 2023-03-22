@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Header, Helmet } from "./header/Header";
 import {
@@ -17,6 +17,7 @@ import axios from "axios";
 const Signup = () => {
   const navigate = useNavigate();
   const [emailChecked, setEmailChecked] = useState(false);
+  const [nameChecked, setNameChecked] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
@@ -25,8 +26,15 @@ const Signup = () => {
     password: "",
     confirmPassword: "",
   });
-
   const { name, email, password, confirmPassword } = formData;
+
+  useEffect(() => {
+    setEmailChecked(false);
+  }, [email]);
+
+  useEffect(() => {
+    setNameChecked(false);
+  }, [name]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -37,6 +45,20 @@ const Signup = () => {
     try {
       const res = await axios.post("/api/auth/check-email", { email });
       setEmailChecked(res.data.message === "사용 가능한 이메일입니다.");
+      setError(res.data.message);
+      setLoading(false);
+    } catch (err) {
+      console.log(err);
+      setError(err);
+      setLoading(false);
+    }
+  };
+
+  const handleNameCheck = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(`/api/auth/check-name/${name}`);
+      setNameChecked(res.data.message === "사용 가능한 이름입니다.");
       setError(res.data.message);
       setLoading(false);
     } catch (err) {
@@ -126,17 +148,33 @@ const Signup = () => {
               <h1>회원가입</h1>
             </Card.Header>
             <Card.Body>
-              {error && <Alert variant="danger">{error}</Alert>}
+              {error && <Alert variant="primary">{error}</Alert>}
               <Form onSubmit={handleSubmit}>
                 <Form.Group controlId="name">
                   <Form.Label>이름</Form.Label>
-                  <Form.Control
-                    type="text"
-                    name="name"
-                    value={name}
-                    onChange={handleChange}
-                    required
-                  />
+                  <InputGroup>
+                    <Form.Control
+                      type="text"
+                      name="name"
+                      value={name}
+                      onChange={handleChange}
+                      required
+                    />
+                    <Button
+                      variant="outline-info"
+                      onClick={handleNameCheck}
+                      disabled={loading || !name}
+                      style={{ marginLeft: "10px" }}
+                    >
+                      {loading ? (
+                        <Spinner animation="border" size="sm" role="status">
+                          <span className="visually-hidden">Checking...</span>
+                        </Spinner>
+                      ) : (
+                        "닉네임 확인"
+                      )}
+                    </Button>
+                  </InputGroup>
                 </Form.Group>
                 <Form.Group controlId="email">
                   <Form.Label>이메일</Form.Label>
@@ -187,7 +225,7 @@ const Signup = () => {
                 <Button
                   type="submit"
                   variant="outline-primary"
-                  disabled={loading || !emailChecked}
+                  disabled={loading || !emailChecked || !nameChecked}
                 >
                   {loading ? (
                     <Spinner animation="border" size="sm" role="status">
