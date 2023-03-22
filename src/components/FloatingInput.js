@@ -55,7 +55,6 @@ const FloatingInput = ({
         : [savedAnswer];
       setSelectedAnswers(updatedAnswers);
       setShowInput(false);
-      console.log(selectedAnswers);
     } catch (err) {
       console.error(err);
     }
@@ -69,11 +68,10 @@ const FloatingInput = ({
   return (
     <Modal show={showInput} onHide={handleCancel} centered>
       <Card>
-        <Card.Header>Selected Question: {assignmentTitle}</Card.Header>
+        <Card.Header>선택한 질문: {assignmentTitle}</Card.Header>
         <Card.Body>
           <Form onSubmit={handleSubmit}>
             <Form.Group controlId="formAnswer">
-              <Form.Label>Answer</Form.Label>
               <AceEditor
                 mode="javascript"
                 theme="monokai"
@@ -86,10 +84,10 @@ const FloatingInput = ({
               />
             </Form.Group>
             <Button type="submit" className="me-2">
-              Register
+              등록
             </Button>
             <Button variant="secondary" onClick={handleCancel}>
-              Cancel
+              취소
             </Button>
           </Form>
         </Card.Body>

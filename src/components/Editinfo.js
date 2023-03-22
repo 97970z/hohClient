@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useLocation, useNavigate } from "react-router-dom";
-import { Header } from "./header/Header";
+import { Header, Helmet } from "./header/Header";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import {
   Container,
@@ -49,7 +49,7 @@ const EditInfo = () => {
     event.preventDefault();
     try {
       const res = await axios.get(`/api/auth/check-name/${username}`);
-      setIsUsernameValid(res.data.message === "Username is available");
+      setIsUsernameValid(res.data.message === "사용 가능한 이름입니다.");
       setError(res.data.message);
     } catch (err) {
       console.error("err:", err.message);
@@ -58,6 +58,11 @@ const EditInfo = () => {
 
   const handleEditSubmit = async (e) => {
     e.preventDefault();
+
+    if (!isInputValid()) {
+      return;
+    }
+
     try {
       const token = localStorage.getItem("token");
       const config = {
@@ -80,19 +85,50 @@ const EditInfo = () => {
     }
   };
 
+  const isInputValid = () => {
+    if (!username || !password) {
+      setError("모든 항목을 입력해주세요.");
+      return false;
+    }
+
+    if (username.length < 4 || username.length > 12) {
+      setError("이름은 4자 이상 12자 이하로 입력해주세요.");
+      return false;
+    }
+
+    if (password.length < 8) {
+      setError("비밀번호는 8자 이상으로 입력해주세요.");
+      return false;
+    }
+
+    return true;
+  };
+
   return (
     <Container className="my-4">
+      <Helmet>
+        <title>과제 도우미 || 내 정보 수정</title>
+        <meta
+          name="google-site-verification"
+          content="과제 도우미에서 질문하고 답변해보세요. ChatGPT의 답변도 과제 도우미에서 받을 수 있습니다."
+        />
+        <meta
+          name="naver-site-verification"
+          content="과제 도우미에서 질문하고 답변해보세요. ChatGPT의 답변도 과제 도우미에서 받을 수 있습니다."
+        />
+      </Helmet>
       <Header />
       <Row className="justify-content-center mt-5">
         <Col lg={6}>
           <Card>
             <Card.Header>
-              <h1>Edit User Information</h1>
+              <h1>내 정보 수정</h1>
             </Card.Header>
             <Card.Body>
               <Form onSubmit={handleEditSubmit}>
+                {error && <Alert variant="info">{error}</Alert>}
                 <Form.Group controlId="username">
-                  <Form.Label>Username</Form.Label>
+                  <Form.Label>이름</Form.Label>
                   <InputGroup>
                     <FormControl
                       type="text"
@@ -104,18 +140,18 @@ const EditInfo = () => {
                       variant="outline-secondary"
                       onClick={handleDuplicateCheck}
                     >
-                      Check
+                      중복확인
                     </Button>
                   </InputGroup>
-                  {error && <Alert variant="info">{error}</Alert>}
                 </Form.Group>
                 <Form.Group controlId="password">
-                  <Form.Label>New Password</Form.Label>
+                  <Form.Label>새로운 비밀번호</Form.Label>
                   <InputGroup>
                     <FormControl
                       type={isPasswordVisible ? "text" : "password"}
                       value={password}
                       onChange={handlePasswordChange}
+                      required
                     />
                     <Button
                       variant="outline-secondary"
@@ -130,7 +166,7 @@ const EditInfo = () => {
                   variant="outline-primary"
                   disabled={!isUsernameValid}
                 >
-                  Save Changes
+                  저장
                 </Button>
               </Form>
             </Card.Body>

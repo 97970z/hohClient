@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import FloatingInput from "./FloatingInput";
-import { Header, AceEditor } from "./header/Header";
+import { Header, AceEditor, Helmet } from "./header/Header";
 import { checkTokenExpiration } from "./refreshToken/refresh";
 import { Loding } from "./Loding/Loding";
 import {
@@ -107,14 +107,6 @@ const AssignmentAnswers = () => {
     }
   };
 
-  const handleExpired = (date) => {
-    const newEx = date;
-    if (newEx.length >= 10) {
-      return newEx.substring(0, 10);
-    }
-    return newEx;
-  };
-
   const handleDelete = async () => {
     const token = localStorage.getItem("token");
     const config = {
@@ -154,6 +146,8 @@ const AssignmentAnswers = () => {
     }
   };
 
+  const hasAcceptedAnswer = selectedAnswers.some((answer) => answer.accepted);
+
   const handleAcceptAnswer = async (answerId) => {
     const token = localStorage.getItem("token");
     const config = {
@@ -174,7 +168,7 @@ const AssignmentAnswers = () => {
       setSelectedAnswers(newAnswers.sort((a, b) => b.accepted - a.accepted));
     } catch (err) {
       console.error(err);
-      alert("There was an issue accepting the answer. Please try again.");
+      alert("답변 채택에 실패했습니다. 다시 시도해주세요.");
     }
   };
 
@@ -191,7 +185,7 @@ const AssignmentAnswers = () => {
     if (!hasBestAnswer) {
       setShow(true);
     } else {
-      alert("You cannot delete an assignment with an accepted answer.");
+      alert("채택된 답변이 있는 질문은 삭제할 수 없습니다.");
     }
   };
 
@@ -260,15 +254,26 @@ const AssignmentAnswers = () => {
 
   return (
     <Container className="my-4">
+      <Helmet>
+        <title>과제 도우미 || 질문 목록</title>
+        <meta
+          name="google-site-verification"
+          content="과제 도우미에서 질문하고 답변해보세요. ChatGPT의 답변도 과제 도우미에서 받을 수 있습니다."
+        />
+        <meta
+          name="naver-site-verification"
+          content="과제 도우미에서 질문하고 답변해보세요. ChatGPT의 답변도 과제 도우미에서 받을 수 있습니다."
+        />
+      </Helmet>
       <Header />
-      <h1 className="text-center mb-4">Assignment Answers</h1>
+      <h1 className="text-center mb-4">질문 목록</h1>
       {error && <Alert variant="danger">{error}</Alert>}
       {loading && <Loding />}
       <Row>
         <Col md={{ span: 8, offset: 2 }}>
           <InputGroup className="mb-4">
             <FormControl
-              placeholder="Search..."
+              placeholder="검색..."
               value={searchTerm}
               onChange={handleSearchTermChange}
             />
@@ -278,9 +283,9 @@ const AssignmentAnswers = () => {
               onChange={handleSearchTypeChange}
               style={{ maxWidth: "150px", textAlign: "center" }}
             >
-              <option value="title">Title</option>
-              <option value="content">Content</option>
-              <option value="title+content">Title + Content</option>
+              <option value="title">제목</option>
+              <option value="content">내용</option>
+              <option value="title+content">제목 + 내용</option>
             </Form.Control>
           </InputGroup>
         </Col>
@@ -291,17 +296,17 @@ const AssignmentAnswers = () => {
           {expandedAssignmentId === assignment._id && isLoggedIn && (
             <Modal show={show} onHide={handleClose}>
               <Modal.Header closeButton>
-                <Modal.Title>Delete Assignment</Modal.Title>
+                <Modal.Title>질문 삭제</Modal.Title>
               </Modal.Header>
               <Modal.Body>
-                과제를 삭제하시겠습니까? 삭제하면 되돌릴 수 없습니다.
+                질문를 삭제하시겠습니까? 삭제하면 되돌릴 수 없습니다.
               </Modal.Body>
               <Modal.Footer>
                 <Button variant="secondary" onClick={handleClose}>
-                  Close
+                  취소
                 </Button>
                 <Button variant="primary" onClick={handleDelete}>
-                  Delete
+                  삭제
                 </Button>
               </Modal.Footer>
             </Modal>
@@ -312,9 +317,7 @@ const AssignmentAnswers = () => {
                 <span>{assignment.title}</span>
 
                 <small className="text-muted">
-                  {assignment.genre === "writing"
-                    ? "other than coding"
-                    : assignment.genre}{" "}
+                  {assignment.genre === "writing" ? "기타" : assignment.genre}{" "}
                 </small>
               </Card.Title>
               <div className="d-flex justify-content-between align-items-center">
@@ -324,27 +327,27 @@ const AssignmentAnswers = () => {
                 <p className="card-subtitle mb-2">
                   만료일: {formatDate(assignment.expiration)}
                 </p>
+                <p className="card-subtitle mb-2">
+                  현상포인트: {assignment.points}
+                </p>
               </div>
             </div>
             {expandedAssignmentId === assignment._id && (
               <>
-                <p className="card-subtitle">Points: {assignment.points}</p>
-                <p className="card-subtitle">
-                  Expiration: {handleExpired(assignment.expiration)}
-                </p>
+                <hr></hr>
                 <div className="card-text">
                   <AceEditor
                     mode={
                       assignment.genre === "writing" ? "text" : assignment.genre
                     }
-                    theme="github"
+                    theme="monokai"
                     value={assignment.content}
                     setOptions={{
                       useWorker: false,
                       readOnly: true,
                       wrap: true,
                     }}
-                    style={{ width: "100%", height: "200px" }}
+                    style={{ width: "100%", height: "300px" }}
                   />
                 </div>
                 {assignment.author === loggedInUser ? (
@@ -354,7 +357,7 @@ const AssignmentAnswers = () => {
                     className="py-0"
                     onClick={handleShow}
                   >
-                    Delete
+                    삭제
                   </Button>
                 ) : null}
                 <hr></hr>
@@ -362,7 +365,7 @@ const AssignmentAnswers = () => {
                   defaultActiveKey="gptAnswer"
                   id={`answerTabs-${assignment._id}`}
                 >
-                  <Tab eventKey="gptAnswer" title="ChatGPT's Answer">
+                  <Tab eventKey="gptAnswer" title="ChatGPT의 답변">
                     <div className="card-text">
                       <AceEditor
                         mode={
@@ -382,7 +385,7 @@ const AssignmentAnswers = () => {
                       {/* <Chatbot /> */}
                     </div>
                   </Tab>
-                  <Tab eventKey="userAnswer" title="User's Answer">
+                  <Tab eventKey="userAnswer" title="유저의 답변">
                     {showInput && (
                       <FloatingInput
                         title={assignment.title}
@@ -406,7 +409,7 @@ const AssignmentAnswers = () => {
                             <div className="d-flex justify-content-between align-items-center">
                               {answer.accepted && (
                                 <span className="badge rounded-pill bg-success text-white">
-                                  Best Answer
+                                  베스트 답변
                                 </span>
                               )}
                               <small className="text-muted">
@@ -437,11 +440,11 @@ const AssignmentAnswers = () => {
                                     className="mr-2"
                                     onClick={() => handleDeleteAnswer(answer)}
                                   >
-                                    Delete
+                                    삭제
                                   </Button>
                                 </>
                               ) : null}
-                              {expandedAssignmentId &&
+                              {/* {expandedAssignmentId &&
                               isLoggedIn &&
                               assignments.find(
                                 (a) => a._id === expandedAssignmentId
@@ -452,7 +455,22 @@ const AssignmentAnswers = () => {
                                   className="mr-2"
                                   onClick={() => handleAcceptAnswer(answer._id)}
                                 >
-                                  Accept
+                                  채택하기
+                                </Button>
+                              ) : null} */}
+                              {expandedAssignmentId &&
+                              isLoggedIn &&
+                              assignments.find(
+                                (a) => a._id === expandedAssignmentId
+                              ).author === loggedInUser &&
+                              !answer.accepted &&
+                              !hasAcceptedAnswer ? (
+                                <Button
+                                  variant="outline-primary"
+                                  className="mr-2"
+                                  onClick={() => handleAcceptAnswer(answer._id)}
+                                >
+                                  채택하기
                                 </Button>
                               ) : null}
                             </div>
@@ -464,7 +482,7 @@ const AssignmentAnswers = () => {
                         variant="primary"
                         onClick={() => setShowInput(true)}
                       >
-                        Submit Answer
+                        답변하기
                       </Button>
                     </Card.Footer>
                   </Tab>

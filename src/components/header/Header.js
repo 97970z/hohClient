@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Navbar, Nav } from "react-bootstrap";
+import { Helmet } from "react-helmet-async";
 import AceEditor from "react-ace";
 import "bootstrap/dist/css/bootstrap.css";
 import "ace-builds/src-noconflict/theme-solarized_light";
@@ -23,15 +24,15 @@ const Header = () => {
   const buttons = isLoggedIn
     ? [
         {
-          label: "Assignment Registration",
+          label: "질문하기",
           path: "/assignment-registration",
         },
         {
-          label: "My Information",
+          label: "내 정보",
           path: "/my-info",
         },
         {
-          label: "Logout",
+          label: "로그아웃",
           path: "/login",
           onClick: () => {
             localStorage.removeItem("token");
@@ -43,7 +44,7 @@ const Header = () => {
       ]
     : [
         {
-          label: "Login",
+          label: "로그인",
           path: "/login",
         },
       ];
@@ -58,7 +59,7 @@ const Header = () => {
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="mr-auto">
             <Nav.Link onClick={() => handleNavigation("/assignment-answers")}>
-              Assignment Answers
+              답변하기
             </Nav.Link>
             {buttons.map(({ label, path, onClick }) => (
               <Nav.Link
@@ -78,4 +79,4 @@ const Header = () => {
   );
 };
 
-export { Header, AceEditor };
+export { Header, AceEditor, Helmet };

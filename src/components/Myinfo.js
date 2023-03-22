@@ -1,7 +1,7 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Header } from "./header/Header";
+import { Header, Helmet } from "./header/Header";
 import { checkTokenExpiration } from "./refreshToken/refresh";
 import { Loding } from "./Loding/Loding";
 import {
@@ -107,8 +107,19 @@ const MyInfo = () => {
   return (
     <>
       <Container className="my-4">
+        <Helmet>
+          <title>과제 도우미 || 내 정보</title>
+          <meta
+            name="google-site-verification"
+            content="과제 도우미에서 질문하고 답변해보세요. ChatGPT의 답변도 과제 도우미에서 받을 수 있습니다."
+          />
+          <meta
+            name="naver-site-verification"
+            content="과제 도우미에서 질문하고 답변해보세요. ChatGPT의 답변도 과제 도우미에서 받을 수 있습니다."
+          />
+        </Helmet>
         <Header />
-        <h1>My Info</h1>
+        <h1>내 정보</h1>
         {error && <Alert variant="danger">{error}</Alert>}
         {loading && <Loding />}
         {user && (
@@ -119,10 +130,10 @@ const MyInfo = () => {
                   <Card.Body>
                     <Card.Title>{user.name}</Card.Title>
                     <Card.Text>
-                      <strong>Email:</strong> {user.email}
+                      <strong>이메일:</strong> {user.email}
                     </Card.Text>
                     <Card.Text>
-                      <strong>Points:</strong> {user.points}
+                      <strong>포인트:</strong> {user.points}
                     </Card.Text>
                     <Button
                       variant="primary"
@@ -130,30 +141,35 @@ const MyInfo = () => {
                         navigate("/edit-info", { state: { user } });
                       }}
                     >
-                      Edit
+                      수정
                     </Button>
                   </Card.Body>
                 </Card>
               </Col>
               <Col md={8}>
-                <h2>My Assignments</h2>
+                <h2>내 질문</h2>
                 {currentAssignments.map((assignment, index) => (
                   <Card key={assignment._id} className="mb-3">
                     <Card.Header>
-                      <strong>Assignment {index + 1}</strong>{" "}
+                      <strong>
+                        과제 {indexOfFirstAssignment + index + 1} -{" "}
+                      </strong>{" "}
                       <Badge variant="secondary">
                         {truncateString(assignment.title, 30)}
                       </Badge>
                     </Card.Header>
                     <Card.Body>
-                      {assignmentAnswers[index] && (
+                      {assignmentAnswers[indexOfFirstAssignment + index] && (
                         <ListGroup>
-                          {assignmentAnswers[index].length === 0 && (
+                          {assignmentAnswers[indexOfFirstAssignment + index]
+                            .length === 0 && (
                             <ListGroup.Item>
                               아직 해당 질문에 대한 답변이 없습니다.
                             </ListGroup.Item>
                           )}
-                          {assignmentAnswers[index].map((answer) => (
+                          {assignmentAnswers[
+                            indexOfFirstAssignment + index
+                          ].map((answer) => (
                             <ListGroup.Item key={answer._id}>
                               {truncateString(answer.content, 100)}
                             </ListGroup.Item>

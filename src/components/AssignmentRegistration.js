@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { Header, AceEditor } from "./header/Header";
+import { Header, AceEditor, Helmet } from "./header/Header";
 import { checkTokenExpiration } from "./refreshToken/refresh";
 import { Loding } from "./Loding/Loding";
 import {
@@ -24,6 +24,7 @@ const AssignmentRegistration = () => {
   const minute = String(now.getMinutes()).padStart(2, "0");
   const nowDate = `${year}-${month}-${date}T${hour}:${minute}`;
 
+  const [isLoading, setIsLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [title, setTitle] = useState("");
@@ -33,7 +34,7 @@ const AssignmentRegistration = () => {
   const [content, setContent] = useState("");
   const [points, setPoints] = useState("");
   const [language, setLanguage] = useState("javascript");
-  const [isLoading, setIsLoading] = useState(false);
+  const [useGPT, setUseGPT] = useState(true);
 
   useEffect(() => {
     const fetchAuthor = async () => {
@@ -76,20 +77,24 @@ const AssignmentRegistration = () => {
         messages: [{ role: "user", content: content }],
       };
 
-      let gptanswer = await axios
-        .post(apiEndpoint, requestData, {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-          },
-        })
-        .then((response) => {
-          return response.data.choices[0].message.content;
-        })
-        .catch((err) => {
-          console.error(err);
-          return "현재 ChatGPT 서버에 문제가 있어서 답변을 받아올 수 없습니다.";
-        });
+      let gptanswer = "ChatGPT는 쉬고 있습니다...";
+
+      if (useGPT) {
+        gptanswer = await axios
+          .post(apiEndpoint, requestData, {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${apiKey}`,
+            },
+          })
+          .then((response) => {
+            return response.data.choices[0].message.content;
+          })
+          .catch((err) => {
+            console.error(err);
+            return "현재 ChatGPT 서버에 문제가 있어서 답변을 받아올 수 없습니다.";
+          });
+      }
 
       gptanswer = gptanswer.replace(/(.*\n){1,2}/, "");
 
@@ -121,30 +126,47 @@ const AssignmentRegistration = () => {
     setLanguage(e.target.value);
   };
 
+  const handleCheckboxChange = (e) => {
+    setUseGPT(e.target.checked);
+  };
+
   if (loading) {
     return <Loding />;
   }
 
   return (
     <Container className="my-4">
+      <Helmet>
+        <title>과제 도우미 || 질문 등록</title>
+        <meta
+          name="google-site-verification"
+          content="과제 도우미에서 질문하고 답변해보세요. ChatGPT의 답변도 과제 도우미에서 받을 수 있습니다."
+        />
+        <meta
+          name="naver-site-verification"
+          content="과제 도우미에서 질문하고 답변해보세요. ChatGPT의 답변도 과제 도우미에서 받을 수 있습니다."
+        />
+      </Helmet>
       <Header />
       <Row className="justify-content-center mt-5">
         <Col lg={8}>
           <Card className="mt-5">
             <Card.Header>
-              <h1>Assignment Registration</h1>
+              <h1>질문 등록</h1>
             </Card.Header>
             <Card.Body>
               {error && <Alert variant="danger">{error}</Alert>}
-              {isLoading ? (
+              {isLoading && useGPT ? (
                 <>
-                  <h4>ChatGPT에게 질문하는 중입니다.</h4>
+                  <h4 className="d-flex justify-content-center align-items-center">
+                    ChatGPT에게 질문하는 중입니다.
+                  </h4>
                   <Loding />
                 </>
               ) : (
                 <Form onSubmit={onSubmit}>
                   <Form.Group controlId="title">
-                    <Form.Label>Title</Form.Label>
+                    <Form.Label>제목</Form.Label>
                     <Form.Control
                       type="text"
                       minLength="5"
@@ -156,7 +178,7 @@ const AssignmentRegistration = () => {
                     />
                   </Form.Group>
                   <Form.Group controlId="author">
-                    <Form.Label>Author</Form.Label>
+                    <Form.Label>작성자</Form.Label>
                     <Form.Control
                       type="text"
                       value={author}
@@ -165,7 +187,7 @@ const AssignmentRegistration = () => {
                     />
                   </Form.Group>
                   <Form.Group controlId="genre">
-                    <Form.Label>Genre</Form.Label>
+                    <Form.Label>카테고리</Form.Label>
                     <Form.Control
                       as="select"
                       value={genre}
@@ -173,13 +195,13 @@ const AssignmentRegistration = () => {
                       required
                     >
                       <option value="">질문 종류를 선택하세요.</option>
-                      <option value="coding">Coding</option>
-                      <option value="writing">other than coding</option>
+                      <option value="coding">코딩</option>
+                      <option value="writing">기타</option>
                     </Form.Control>
                   </Form.Group>
                   {genre === "coding" && (
                     <Form.Group controlId="language">
-                      <Form.Label>Programming Language</Form.Label>
+                      <Form.Label>프로그래밍 언어</Form.Label>
                       <Form.Control
                         as="select"
                         value={language}
@@ -194,7 +216,7 @@ const AssignmentRegistration = () => {
                     </Form.Group>
                   )}
                   <Form.Group controlId="expiration">
-                    <Form.Label>Expiration</Form.Label>
+                    <Form.Label>만료일</Form.Label>
                     <Form.Control
                       type="datetime-local"
                       min={nowDate}
@@ -204,7 +226,7 @@ const AssignmentRegistration = () => {
                     />
                   </Form.Group>
                   <Form.Group controlId="content">
-                    <Form.Label>Content</Form.Label>
+                    <Form.Label>내용</Form.Label>
                     <AceEditor
                       mode={language}
                       theme={genre === "coding" ? "monokai" : "github"}
@@ -220,7 +242,7 @@ const AssignmentRegistration = () => {
                     />
                   </Form.Group>
                   <Form.Group controlId="points">
-                    <Form.Label>Points</Form.Label>
+                    <Form.Label>현상포인트</Form.Label>
                     <Form.Control
                       type="number"
                       value={points}
@@ -231,12 +253,22 @@ const AssignmentRegistration = () => {
                       required
                     />
                   </Form.Group>
+                  <hr></hr>
+                  <Form.Group controlId="useGPT">
+                    <Form.Check
+                      type="checkbox"
+                      label="ChatGPT를 이용하여 답변을 받으시겠습니까? (질문 내용에 따라 시간이 오래 걸릴 수 있습니다.)"
+                      checked={useGPT}
+                      onChange={handleCheckboxChange}
+                    />
+                  </Form.Group>
+                  <hr></hr>
                   <Button
                     variant="outline-primary"
                     className="mr-2"
                     type="submit"
                   >
-                    Create
+                    작성
                   </Button>
                 </Form>
               )}

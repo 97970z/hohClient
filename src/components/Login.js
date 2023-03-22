@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import { Header } from "./header/Header";
+import { Header, Helmet } from "./header/Header";
 import {
   Container,
   Row,
@@ -13,13 +13,13 @@ import {
 } from "react-bootstrap";
 
 const Login = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -50,18 +50,29 @@ const Login = () => {
 
   return (
     <Container className="my-4">
+      <Helmet>
+        <title>과제 도우미 || 로그인</title>
+        <meta
+          name="google-site-verification"
+          content="과제 도우미에서 질문하고 답변해보세요. ChatGPT의 답변도 과제 도우미에서 받을 수 있습니다."
+        />
+        <meta
+          name="naver-site-verification"
+          content="과제 도우미에서 질문하고 답변해보세요. ChatGPT의 답변도 과제 도우미에서 받을 수 있습니다."
+        />
+      </Helmet>
       <Header />
       <Row className="justify-content-center mt-5">
         <Col lg={6} md={8} sm={12}>
           <Card>
             <Card.Header>
-              <h1>Login</h1>
+              <h1>로그인</h1>
             </Card.Header>
             <Card.Body>
               {error && <Alert variant="danger">{error}</Alert>}
               <Form onSubmit={handleSubmit}>
                 <Form.Group controlId="email">
-                  <Form.Label>Email</Form.Label>
+                  <Form.Label>이메일</Form.Label>
                   <Form.Control
                     type="email"
                     name="email"
@@ -71,7 +82,7 @@ const Login = () => {
                   />
                 </Form.Group>
                 <Form.Group controlId="password">
-                  <Form.Label>Password</Form.Label>
+                  <Form.Label>비밀번호</Form.Label>
                   <Form.Control
                     type="password"
                     name="password"
@@ -86,7 +97,7 @@ const Login = () => {
                   variant="outline-primary"
                   disabled={loading}
                 >
-                  {loading ? "Loading..." : "Login"}
+                  {loading ? "Loading..." : "로그인"}
                 </Button>
                 <Button
                   type="button"
@@ -94,7 +105,7 @@ const Login = () => {
                   variant="outline-secondary"
                   disabled={loading}
                 >
-                  {loading ? "Loading..." : "Sign up"}
+                  {loading ? "Loading..." : "회원가입"}
                 </Button>
               </Form>
             </Card.Body>
