@@ -37,6 +37,8 @@ React-Bootstrap을 사용하여 구축된 이 애플리케이션은 다양한 �
 - React-Bootstrap
 - OpenAI API
 - Ace Editor
+- MongoDB
+- Node.js / Express.js
 
 ## To do list
 
